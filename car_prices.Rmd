@@ -64,7 +64,6 @@ df %>%
     glimpse()
 ```
 
-
 ```{r, load_sample}
 sample <- read_rds("./data/sample_clean_dataset.rds")
 summary(sample)
@@ -73,12 +72,6 @@ glimpse(sample)
 glimpse(df)
 ```
 
-
 ```{r, save, run=FALSE}
 write_rds(df, "./data/dataset.rds")
 ```
-
-
-
-
-
