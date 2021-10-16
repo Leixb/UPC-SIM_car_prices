@@ -1,0 +1,81 @@
+---
+title: "Car prices"
+author: "Aleix, David"
+output:
+    pdf_document:
+        latex_engine: lualatex
+---
+
+```{r, libraries, include=FALSE}
+library(tidyverse)
+library(glue)
+```
+
+# Data loading
+
+Load and bind datasets into single one. Adding manufacturer column.
+
+```{r, message = FALSE}
+df <- map2(# map through file and manufacturer names and read dataframes
+           c("audi",  "bmw", "merc",     "vw"),         # filename
+           c("Audio", "BMW", "Mercedes", "Volkswagen"), # manufacturer
+           function(filename, manufacturer) {
+               read_csv(glue("./data/{filename}.csv"),
+                        col_types = "ffififidffd") %>%
+               mutate(manufacturer = manufacturer) # add column
+           }) %>%
+    reduce(~ bind_rows(.x, .y)) # Bind rows into single dataframe
+```
+
+```{r, sample_size, include=FALSE}
+glimpse(df)
+```
+
+Get a sample of `r (sample_size <- 1000)`:
+
+```{r, sampleData}
+set.seed(19990428)
+df <- df %>%
+    slice_sample(n = sample_size)
+```
+
+Add manufacturer to model column:
+
+```{r, models}
+df <- df %>%
+    mutate(model = as_factor(paste0(manufacturer, " - ", model)))
+```
+
+Convert all  character columns to factors.
+
+```{r, factors}
+df <- df %>%
+    mutate(manufacturer = as_factor(manufacturer))
+```
+
+Check for NA.
+
+```{r, na}
+df %>%
+    summarise_all(~ sum(is.na(.))) %>%
+    glimpse()
+```
+
+
+```{r, load_sample}
+sample <- read_rds("./data/sample_clean_dataset.rds")
+summary(sample)
+summary(df)
+glimpse(sample)
+glimpse(df)
+```
+
+
+```{r, save, run=FALSE}
+write_rds(df, "./data/dataset.rds")
+```
+
+
+
+
+
