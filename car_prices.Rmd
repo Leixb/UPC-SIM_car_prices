@@ -18,7 +18,7 @@ Load and bind datasets into single one. Adding manufacturer column.
 ```{r, message = FALSE}
 df <- map2(# map through file and manufacturer names and read dataframes
            c("audi",  "bmw", "merc",     "vw"),         # filename
-           c("Audio", "BMW", "Mercedes", "Volkswagen"), # manufacturer
+           c("Audi",  "BMW", "Mercedes", "Volkswagen"), # manufacturer
            function(filename, manufacturer) {
                read_csv(glue("./data/{filename}.csv"),
                         col_types = "ffififidffd") %>%
