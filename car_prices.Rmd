@@ -21,8 +21,8 @@ df <- map2(# map through file and manufacturer names and read dataframes
            c("Audi",  "BMW", "Mercedes", "Volkswagen"), # manufacturer
            function(filename, manufacturer) {
                read_csv(glue("./data/{filename}.csv"),
-                        col_types = "ffififidffd") %>%
-               mutate(manufacturer = manufacturer) # add column
+                        col_types = "fiififidd") %>%
+               mutate(manufacturer = as_factor(manufacturer)) # add column
            }) %>%
     reduce(~ bind_rows(.x, .y)) # Bind rows into single dataframe
 ```
@@ -46,11 +46,14 @@ df <- df %>%
     mutate(model = as_factor(paste0(manufacturer, " - ", model)))
 ```
 
-Convert all  character columns to factors.
+Convert year and engineSize to factor. We do it now so they have numeric
+ordering.
 
 ```{r, factors}
 df <- df %>%
-    mutate(manufacturer = as_factor(manufacturer))
+    mutate(year = as_factor(year),
+           engineSize = as_factor(engineSize),
+    )
 ```
 
 Check for NA.
