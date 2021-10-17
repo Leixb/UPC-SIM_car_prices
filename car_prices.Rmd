@@ -46,6 +46,19 @@ df <- df %>%
     mutate(model = as_factor(paste0(manufacturer, " - ", model)))
 ```
 
+Add auxiliary auxiliary variables.
+
+```{r, aux_variables}
+df <- df %>% mutate(
+    age = 2020 - year,
+    aux_price = cut_number(price / 1000, 4),
+    aux_mileage = cut_number(mileage / 1000, 4),
+    aux_mpg = cut_number(mpg, 4),
+    aux_tax = cut_number(tax, 2),
+    aux_age = cut_number(age, 4)
+)
+```
+
 Convert year and engineSize to factor. We do it now so they have numeric
 ordering.
 
