@@ -1,9 +1,12 @@
 ---
 title: "Car prices"
-author: "Aleix, David"
+author:
+    - Aleix Boné
+    - David Gili
 output:
     pdf_document:
         latex_engine: lualatex
+        fig_caption: true
 ---
 
 ```{r, libraries, include=FALSE}
@@ -27,16 +30,16 @@ df <- map2(# map through file and manufacturer names and read dataframes
     reduce(~ bind_rows(.x, .y)) # Bind rows into single dataframe
 ```
 
-```{r, sample_size, include=FALSE}
+```{r, include=FALSE}
 glimpse(df)
 ```
 
-Get a sample of `r (sample_size <- 1000)`:
+Get a sample of 5000:
 
 ```{r, sampleData}
 set.seed(19990428)
 df <- df %>%
-    slice_sample(n = sample_size)
+    slice_sample(n = 5000)
 ```
 
 Add manufacturer to model column:
