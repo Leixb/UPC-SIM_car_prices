@@ -2,6 +2,7 @@
 library(tidyverse)
 library(cowplot)
 library(corrplot)
+library(car)
 ```
 
 # Questions
@@ -78,6 +79,14 @@ plot_grid(plt_qq_price, plt_qq_log_price, align = "hv", labels = "AUTO")
 ```{r}
 df$price %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
+```
+
+```{r}
+durbinWatsonTest(lm(price ~ age, data = df))
+durbinWatsonTest(lm(price ~ mpg, data = df))
+durbinWatsonTest(lm(price ~ engineSize, data = df))
+durbinWatsonTest(lm(price ~ year, data = df))
+durbinWatsonTest(lm(price ~ mileage, data = df))
 ```
 
 <!-- 2. --> \pagebreak
