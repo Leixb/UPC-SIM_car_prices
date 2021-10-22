@@ -18,7 +18,7 @@ if (isTRUE(getOption("knitr.in.progress"))) {
     # after running knitr
 }
 
-knitr::opts_chunk$set(echo = FALSE,
+knitr::opts_chunk$set(echo = TRUE,
                       collapse = FALSE,
                       comment = "#>",
                       fig.retina = 2, # Control using dpi
