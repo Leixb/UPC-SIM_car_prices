@@ -30,7 +30,6 @@ ggplot(df, aes(price)) +
             price_sd
         ),
     )
-
 ```
 
 ```{r echo=FALSE, fig.height = 4}
@@ -85,9 +84,9 @@ df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 
 ```{r, fig.cap = "Correlation plot"}
 df %>%
-  select(where(is.numeric)) %>%
-  cor(use = "complete.obs") %>%
-  corrplot()
+    select(where(is.numeric)) %>%
+    cor(use = "complete.obs") %>%
+    corrplot()
 ```
 
 3. Define a polytomic factor f.age for the covariate car age according to its
