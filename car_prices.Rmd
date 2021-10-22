@@ -3,6 +3,8 @@ title: "Car prices"
 author:
     - Aleix Boné
     - David Gili
+header-includes:
+   - \usepackage{float}
 output:
     pdf_document:
         latex_engine: lualatex
@@ -15,6 +17,17 @@ if (isTRUE(getOption("knitr.in.progress"))) {
     # NOTE: This will still afect the options if you use the same R session
     # after running knitr
 }
+
+knitr::opts_chunk$set(echo = FALSE,
+                      collapse = FALSE,
+                      comment = "#>",
+                      fig.retina = 2, # Control using dpi
+                      fig.width = 6,  # generated images
+                      fig.pos = "H",  # pdf mode
+                      fig.align = "center",
+                      dpi = if (knitr::is_latex_output()) 72 else 300,
+                      out.width = "100%",
+                      optipng = "-o1 -quiet")
 ```
 
 ```{r child = 'data_preparation.Rmd'}
