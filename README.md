@@ -31,7 +31,7 @@ preparation** about:
 - Check data types. Dates should be coded as such and factors should have level
   names (if possible, levels have to be set and clarify the variable they belong
   to). This point is sometimes included under data transformation process. New
-  derived variables are to be produced sometimes scaling and/or normalization
+  derived variables are to be produced, sometimes scaling and/or normalization
   (range/shape changes to numeric variables) or category regrouping for factors
   (nominal/ordinal). 
 
@@ -75,20 +75,20 @@ required.
 **This course project (Assignment 1) is concerned with numeric model building
 for scraped data of used cars, which have been separated into files
 corresponding to each car manufacturer (only Mercedes, BMW, Volkswagen and
-Audi cars are to be considered):** `Y-Price` (Numeric Target).
+Audi's cars are to be considered):** `Y-Price` (Numeric Target).
 
 **Aim is to predict how much you should sell your old car. It involves a numeric
 outcome.  A random sample containing 5000 registers combining Audi, VW, Merc and
-BMW  registers has to be retained by each group. Data from:** [kaggle][1]
+BMW  registers have to be retained by each group. Data from:** [kaggle][1]
 
 1. Determine if the response variable (price) has an acceptably normal
    distribution. Address test to discard serial correlation. 
 
-2. Indicate by exploration of the data which are apparently the variables most
+2. Indicate by exploration of the data, which are apparently the variables most
    associated with the response variable (use only the indicated variables). 
 
 3. Define a polytomic factor f.age for the covariate car age according to its
-   quartiles and argue if the average price depends on the level of age.
+   quartiles, and argue if the average price depends on the level of age.
    Statistically justify the answer. 
 
 4. Calculate and interpret the anova model that explains car price according to
@@ -132,23 +132,13 @@ BMW  registers has to be retained by each group. Data from:** [kaggle][1]
 17. Study the presence of a posteriori influential values, indicating the
     criteria studied in class and the actual atypical observations. 
 
-18. Given a 5-year old car, the rest of numerical variables on the mean and
+18. Given a 5-year-old car, the rest of numerical variables on the mean and
     factors on the reference
 
 19. Summarize what you have learned by working with this interesting real
     dataset.
 
 ## Data preparation outline
-
-
-Create variable adding the total number missing values, outliers and errors.
-Describe these variables, to which other variables exist higher associations.   
-
-- Compute the correlation with all other variables. Rank these variables
-  according the correlation 
-- Compute for every group of individuals (group of age, size of town, singles,
-  married...) the mean of missing/outliers/errors values. Rank the groups
-  according the computed mean.
 
 ### Univariate Descriptive Analysis (to be included for each variable)
 
@@ -159,7 +149,7 @@ Describe these variables, to which other variables exist higher associations.
   kept as numeric but additional factors should also be created as a
   discretization of each numeric variable. 
 
-- Exploratory Data Analysis for each variables (numeric summary and graphic
+- Exploratory Data Analysis for each variable (numeric summary and graphic
   support).
 
 ### Data quality report
@@ -172,7 +162,7 @@ Per variable, count:
 
 - Number of outliers 
 
-- Rank variables according the sum of missing values (and errors).
+- Rank variables according to the sum of missing values (and errors).
 
 Per individuals, count: 
 
@@ -183,6 +173,15 @@ Per individuals, count:
 - Number of outliers 
 
 - Identify individuals considered as multivariant outliers.
+
+Create a variable adding the total number of missing values, outliers and errors.
+Describe these variables, to which other variables exist higher associations.   
+
+- Compute the correlation with all other variables. Rank these variables
+  according to the correlation 
+- Compute for every group of individuals (group of age, size of town, singles,
+  married...) the mean of missing/outliers/errors values. Rank the groups
+  according to the computed mean.
 
 #### Imputation
 
