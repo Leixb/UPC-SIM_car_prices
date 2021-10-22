@@ -94,6 +94,17 @@ df %>%
    quartiles, and argue if the average price depends on the level of age.
    Statistically justify the answer. 
 
+```{r}
+df %>%
+    ggplot(aes(x = aux_age, y = price, fill = aux_age)) +
+    geom_boxplot()
+
+anova <- aov(price ~ aux_age, data = df)
+summary(anova)
+TukeyHSD(anova)
+```
+
+
 4. Calculate and interpret the anova model that explains car price according to
    the age factor and the fuel type. 
 
