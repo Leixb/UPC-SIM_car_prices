@@ -1,7 +1,7 @@
 library(tidyverse)
 library(corrplot)
 
-df <- read_rds("./data/dataset.rds")
+df <- read_rds_w_checksum("./data/dataset.rds")
 
 # 1. Determine if the response variable (price) has an acceptably normal distribution. Address test to discard serial correlation.
 

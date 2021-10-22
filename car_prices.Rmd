@@ -88,6 +88,7 @@ glimpse(sample)
 glimpse(df)
 ```
 
-```{r, save, run=FALSE}
-write_rds(df, "./data/dataset.rds")
+```{r, save, include=FALSE}
+source("io_checksum.R")
+write_rds_w_checksum(df, "./data/dataset.rds")
 ```

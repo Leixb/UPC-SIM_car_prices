@@ -1,4 +1,5 @@
 *.pdf
+*.rds
 
 # History files
 .Rhistory
@@ -330,3 +331,4 @@ TSWLatexianTemp*
 # xwatermark package
 *.xwm
 
+!/data/*.md5
