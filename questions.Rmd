@@ -5,35 +5,79 @@ library(cowplot)
 
 # Questions
 
-1. Determine if the response variable (price) has an acceptably normal
-   distribution. Address test to discard serial correlation. 
+## Determine if the response variable (price) has an acceptably normal distribution. Address test to discard serial correlation.
 
 ```{r echo = FALSE}
+
+df <- df %>% mutate(price_log = log(price))
+
+price_mean <- mean(df$price)
+price_sd <- sd(df$price)
+
 ggplot(df, aes(price)) +
-    geom_histogram(bins = 30)
-ggplot(df, aes(log(price))) +
-    geom_histogram(bins = 30)
+    geom_histogram(aes(y = ..density..), bins = 30) +
+    stat_function(
+        fun = dnorm,
+        args = list(mean = price_mean, sd = price_sd),
+        color = "red"
+    ) +
+    annotate("text", max(df$price) * 3 / 4, 1e-5,
+        color = "red",
+        label = sprintf(
+            "μ = %0.2f\nσ = %0.2f",
+            price_mean,
+            price_sd
+        ),
+    )
+
+```
+
+```{r echo=FALSE, fig.height = 4}
+
+price_log_mean <- mean(df$price_log)
+price_log_sd <- sd(df$price_log)
+
+ggplot(df, aes(price_log)) +
+    geom_histogram(aes(y = ..density..), bins = 30) +
+    stat_function(
+        fun = dnorm,
+        args = list(mean = price_log_mean, sd = price_log_sd),
+        color = "red"
+    ) +
+    annotate("text", 11, 0.75,
+        color = "red",
+        label = sprintf(
+            "μ = %0.2f\nσ = %0.2f",
+            price_log_mean,
+            price_log_sd
+        ),
+    )
 ```
 
 ```{r}
 shapiro.test(df$price)
 shapiro.test(log(df$price))
 ```
-```{r fig.cap="QQ plots" fig.height=3}
+
+```{r echo=FALSE, fig.cap="\\label{fig:qq_plots}QQ plots", fig.height=3}
 plt_qq_price <- ggplot(df, aes(sample = price)) +
     stat_qq() +
     stat_qq_line(color = "red") +
     theme(aspect.ratio = 1) +
-    labs(x = "Theorical", y = "price")
+    labs(x = "Theoretical", y = "price")
 plt_qq_log_price <- ggplot(df, aes(sample = log(price))) +
     stat_qq() +
     stat_qq_line(color = "red") +
     theme(aspect.ratio = 1) +
-    labs(x = "Theorical", y = "log(price)")
+    labs(x = "Theoretical", y = "log(price)")
 
-plot_grid(plt_qq_price, plt_qq_log_price, align = "h")
+plot_grid(plt_qq_price, plt_qq_log_price, align = "hv", labels = "AUTO")
 ```
 
+```{r}
+df$price %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
+df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
+```
 
 2. Indicate by exploration of the data, which are apparently the variables most
    associated with the response variable (use only the indicated variables). 
