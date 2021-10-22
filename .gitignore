@@ -1,5 +1,6 @@
 *.pdf
 *.rds
+_libs
 
 # History files
 .Rhistory
