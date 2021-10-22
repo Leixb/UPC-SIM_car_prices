@@ -1,6 +1,7 @@
 ```{r, libraries_question, include=FALSE}
 library(tidyverse)
 library(cowplot)
+library(corrplot)
 ```
 
 # Questions
@@ -81,6 +82,13 @@ df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 
 2. Indicate by exploration of the data, which are apparently the variables most
    associated with the response variable (use only the indicated variables). 
+
+```{r, fig.cap = "Correlation plot"}
+df %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs") %>%
+  corrplot()
+```
 
 3. Define a polytomic factor f.age for the covariate car age according to its
    quartiles, and argue if the average price depends on the level of age.
