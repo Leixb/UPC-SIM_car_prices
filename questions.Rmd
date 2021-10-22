@@ -107,6 +107,22 @@ TukeyHSD(anova)
 4. Calculate and interpret the anova model that explains car price according to
    the age factor and the fuel type. 
 
+```{r}
+df %>%
+    ggplot(aes(x = aux_age, y = price, fill = fuelType)) +
+    geom_boxplot()
+
+anova <- aov(price ~ aux_age * fuelType, data = df)
+summary(anova)
+
+group_by(df, aux_age, fuelType) %>%
+    summarise(
+        count = n(),
+        mean = mean(price, na.rm = TRUE),
+        sd = sd(price, na.rm = TRUE)
+    )
+```
+
 5. Do you think that the variability of the price depends on both factors? Does
    the relation between price and age factor depend on fuel type? 
 
