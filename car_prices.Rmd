@@ -9,86 +9,17 @@ output:
         fig_caption: true
 ---
 
-```{r, libraries, include=FALSE}
-library(tidyverse)
-library(glue)
+```{r include = FALSE}
+if (isTRUE(getOption("knitr.in.progress"))) {
+    options(width = 80)
+    # NOTE: This will still afect the options if you use the same R session
+    # after running knitr
+}
 ```
 
-# Data loading
-
-Load and bind datasets into single one. Adding manufacturer column.
-
-```{r, message = FALSE}
-df <- map2(# map through file and manufacturer names and read dataframes
-           c("audi",  "bmw", "merc",     "vw"),         # filename
-           c("Audi",  "BMW", "Mercedes", "Volkswagen"), # manufacturer
-           function(filename, manufacturer) {
-               read_csv(glue("./data/{filename}.csv"),
-                        col_types = "fiififidd") %>%
-               mutate(manufacturer = as_factor(manufacturer)) # add column
-           }) %>%
-    reduce(~ bind_rows(.x, .y)) # Bind rows into single dataframe
+```{r child = 'data_preparation.Rmd'}
 ```
 
-```{r, include=FALSE}
-glimpse(df)
-```
-
-Get a sample of 5000:
-
-```{r, sampleData}
-set.seed(19990428)
-df <- df %>%
-    slice_sample(n = 5000)
-```
-
-Add manufacturer to model column:
-
-```{r, models}
-df <- df %>%
-    mutate(model = as_factor(paste0(manufacturer, " - ", model)))
-```
-
-Add auxiliary auxiliary variables.
-
-```{r, aux_variables}
-df <- df %>% mutate(
-    age = 2020 - year,
-    aux_price = cut_number(price / 1000, 4),
-    aux_mileage = cut_number(mileage / 1000, 4),
-    aux_mpg = cut_number(mpg, 4),
-    aux_tax = cut_number(tax, 2),
-    aux_age = cut_number(age, 4)
-)
-```
-
-Convert year and engineSize to factor. We do it now so they have numeric
-ordering.
-
-```{r, factors}
-df <- df %>%
-    mutate(year = as_factor(year),
-           engineSize = as_factor(engineSize),
-    )
-```
-
-Check for NA.
-
-```{r, na}
-df %>%
-    summarise_all(~ sum(is.na(.))) %>%
-    glimpse()
-```
-
-```{r, load_sample}
-sample <- read_rds("./data/sample_clean_dataset.rds")
-summary(sample)
-summary(df)
-glimpse(sample)
-glimpse(df)
-```
-
-```{r, save, include=FALSE}
-source("io_checksum.R")
-write_rds_w_checksum(df, "./data/dataset.rds")
+\pagebreak
+```{r child = 'questions.Rmd'}
 ```
