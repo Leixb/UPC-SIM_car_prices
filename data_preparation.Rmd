@@ -9,7 +9,7 @@ library(glue)
 
 Load and bind datasets into single one. Adding manufacturer column.
 
-```{r read_data, message = FALSE}
+```{r read_data, echo = TRUE, message = FALSE}
 df <- map2(# map through file and manufacturer names and read dataframes
     c("audi", "bmw", "merc", "vw"), # filename
     c("Audi", "BMW", "Mercedes", "Volkswagen"), # manufacturer
@@ -25,7 +25,7 @@ df <- map2(# map through file and manufacturer names and read dataframes
 
 Get a sample of 5000:
 
-```{r sample_data}
+```{r sample_data, echo = TRUE}
 set.seed(19990428)
 df <- df %>%
     slice_sample(n = 5000)
@@ -34,7 +34,7 @@ df <- df %>%
 Add `manufacturer` to `model`, convert `year` and `engineSize` to factors and add
 auxiliary factor variables for the numeric ones:
 
-```{r aux_variables}
+```{r aux_variables, echo = TRUE}
 df <- df %>% mutate(
     model = as_factor(paste0(manufacturer, " - ", model)),
     age = 2020 - year,
