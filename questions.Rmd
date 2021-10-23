@@ -97,7 +97,7 @@ durbinWatsonTest(lm(price ~ mileage, data = df))
 ```{r q2_corrplot, fig.cap = "Correlation plot", fig.height = 3}
 df %>%
     select(where(is.numeric), -price_log) %>%
-    cor(use = "complete.obs") %>%
+    cor(use = "complete.obs", method = "spearman") %>%
     corrplot()
 ```
 
