@@ -10,9 +10,11 @@ output:
         latex_engine: lualatex
         fig_caption: true
         number_sections: true
+        dev: cairo_pdf
 ---
 
 ```{r include = FALSE}
+options(encoding = "UTF-8")
 options(knitr.table.format = "latex")
 if (isTRUE(getOption("knitr.in.progress"))) {
     options(width = 80)
