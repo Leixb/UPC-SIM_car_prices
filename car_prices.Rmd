@@ -4,7 +4,9 @@ author:
     - Aleix Boné
     - David Gili
 header-includes:
-   - \usepackage{float}
+    - \usepackage{float}
+    - \usepackage{cleveref}
+tables: true
 output:
     pdf_document:
         latex_engine: lualatex
@@ -14,24 +16,32 @@ output:
 ---
 
 ```{r include = FALSE}
+library(knitr)
+library(kableExtra)
+
 options(encoding = "UTF-8")
-options(knitr.table.format = "latex")
+options(knitr.table.format = function() {
+    if (knitr::is_latex_output()) "latex" else "pipe"
+})
 if (isTRUE(getOption("knitr.in.progress"))) {
     options(width = 80)
     # NOTE: This will still afect the options if you use the same R session
     # after running knitr
 }
 
-knitr::opts_chunk$set(echo = TRUE,
-                      collapse = FALSE,
-                      comment = "#>",
-                      fig.retina = 2, # Control using dpi
-                      fig.width = 6,  # generated images
-                      fig.pos = "H",  # pdf mode
-                      fig.align = "center",
-                      dpi = if (knitr::is_latex_output()) 72 else 300,
-                      out.width = "100%",
-                      optipng = "-o1 -quiet")
+knitr::opts_chunk$set(
+    echo = TRUE,
+    collapse = FALSE,
+    comment = "#>",
+    fig.retina = 2, # Control using dpi
+    fig.width = 5, # generated images
+    fig.height = 3, # generated images
+    fig.pos = "H", # pdf mode
+    fig.align = "center",
+    dpi = if (knitr::is_latex_output()) 72 else 300,
+    out.width = "100%",
+    optipng = "-o1 -quiet"
+)
 ```
 
 ```{r child = 'data_preparation.Rmd'}
