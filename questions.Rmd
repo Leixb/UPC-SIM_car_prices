@@ -5,12 +5,12 @@ library(corrplot)
 library(car)
 ```
 
-# Questions
+# Analysis
 
 <!-- 1 -->
 ## Determine if the response variable (price) has an acceptably normal distribution. Address test to discard serial correlation.
 
-```{r echo = FALSE}
+```{r q1_price_hist, echo = FALSE, fig.height = 3}
 
 df <- df %>% mutate(price_log = log(price))
 
@@ -34,7 +34,7 @@ ggplot(df, aes(price)) +
     )
 ```
 
-```{r echo=FALSE, fig.height = 4}
+```{r q1_price_log_hist, echo = FALSE, fig.height = 3}
 
 price_log_mean <- mean(df$price_log)
 price_log_sd <- sd(df$price_log)
@@ -56,12 +56,14 @@ ggplot(df, aes(price_log)) +
     )
 ```
 
-```{r}
+```{r q1_shapiro}
 shapiro.test(df$price)
 shapiro.test(log(df$price))
 ```
 
-```{r echo=FALSE, fig.cap="\\label{fig:qq_plots}QQ plots", fig.height=3}
+\Cref{fig:q1_qq_plots} shows the QQ plots.
+
+```{r q1_qq_plots, echo=FALSE, fig.cap="QQ plots", fig.width=6}
 plt_qq_price <- ggplot(df, aes(sample = price)) +
     stat_qq() +
     stat_qq_line(color = "red") +
@@ -76,12 +78,12 @@ plt_qq_log_price <- ggplot(df, aes(sample = log(price))) +
 plot_grid(plt_qq_price, plt_qq_log_price, align = "hv", labels = "AUTO")
 ```
 
-```{r}
+```{r q1_Kolmogorov-Smirnov}
 df$price %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 ```
 
-```{r}
+```{r q1_durbinWatson, cache = TRUE}
 durbinWatsonTest(lm(price ~ age, data = df))
 durbinWatsonTest(lm(price ~ mpg, data = df))
 durbinWatsonTest(lm(price ~ engineSize, data = df))
@@ -92,7 +94,7 @@ durbinWatsonTest(lm(price ~ mileage, data = df))
 <!-- 2. --> \pagebreak
 ## Indicate by exploration of the data, which are apparently the variables most associated with the response variable (use only the indicated variables).
 
-```{r, fig.cap = "Correlation plot"}
+```{r q2_corrplot, fig.cap = "Correlation plot", fig.height = 3}
 df %>%
     select(where(is.numeric)) %>%
     cor(use = "complete.obs") %>%
@@ -102,7 +104,7 @@ df %>%
 <!-- 3. --> \pagebreak
 ## Define a polytomic factor f.age for the covariate car age according to its quartiles, and argue if the average price depends on the level of age.  Statistically justify the answer.
 
-```{r}
+```{r q3_bp}
 df %>%
     ggplot(aes(x = aux_age, y = price, fill = aux_age)) +
     geom_boxplot()
@@ -116,7 +118,7 @@ TukeyHSD(anova)
 <!-- 4. --> \pagebreak
 ## Calculate and interpret the anova model that explains car price according to the age factor and the fuel type.
 
-```{r}
+```{r q4}
 df %>%
     ggplot(aes(x = aux_age, y = price, fill = fuelType)) +
     geom_boxplot()
