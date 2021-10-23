@@ -30,7 +30,7 @@ if (isTRUE(getOption("knitr.in.progress"))) {
 }
 
 knitr::opts_chunk$set(
-    echo = TRUE,
+    echo = FALSE,
     collapse = FALSE,
     comment = "#>",
     fig.retina = 2, # Control using dpi
