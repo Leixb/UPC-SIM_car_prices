@@ -3,6 +3,7 @@ library(tidyverse)
 library(cowplot)
 library(corrplot)
 library(car)
+library(FactoMineR)
 ```
 
 # Analysis
@@ -100,11 +101,46 @@ durbinWatsonTest(lm(price ~ mileage, data = df))
 <!-- 2. --> \pagebreak
 ## Indicate by exploration of the data, which are apparently the variables most associated with the response variable (use only the indicated variables).
 
-```{r q2_corrplot, fig.cap = "Correlation plot", fig.height = 3}
-df %>%
+```{r q2_corrplot, fig.cap = "Spearman correlation plot", fig.height = 2.5}
+cor_mat <- df %>%
     select(where(is.numeric), -price_log) %>%
-    cor(use = "complete.obs", method = "spearman") %>%
-    corrplot()
+    cor(use = "complete.obs", method = "spearman")
+
+cor_mat %>% corrplot()
+```
+
+```{r q2_corr}
+cor_mat %>%
+    kable(caption = "Spearman correlation coeficients",
+          booktabs = TRUE,
+          digits = 2) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+```{r q2_factors}
+df_cond <- df %>%
+    select(-c(model, aux_price)) %>%
+    condes(which(colnames(.) == "price_log"))
+
+df_cond$quali %>%
+    data.frame() %>%
+    rownames_to_column("Variable") %>%
+    select(-p.value) %>%
+    kable(caption = "Qualitative variable correlation with log(price)",
+          booktabs = TRUE,
+          digits = 2) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+```{r q2_factors_cat}
+df_cond$category %>%
+    data.frame() %>%
+    arrange(desc(abs(Estimate))) %>%
+    rownames_to_column("Variable") %>%
+    kable(caption = "Qualitative categories correlation with log(price)",
+          booktabs = TRUE,
+          digits = 2) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
 <!-- 3. --> \pagebreak
