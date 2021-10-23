@@ -5,79 +5,105 @@ library(glue)
 
 # Data preparation
 
+## Reading and intial preprocessing
+
 Load and bind datasets into single one. Adding manufacturer column.
 
-```{r, message = FALSE}
+```{r read_data, message = FALSE}
 df <- map2(# map through file and manufacturer names and read dataframes
-           c("audi",  "bmw", "merc",     "vw"),         # filename
-           c("Audi",  "BMW", "Mercedes", "Volkswagen"), # manufacturer
-           function(filename, manufacturer) {
-               read_csv(glue("./data/{filename}.csv"),
-                        col_types = "fiififidd") %>%
-               mutate(manufacturer = as_factor(manufacturer)) # add column
-           }) %>%
+    c("audi", "bmw", "merc", "vw"), # filename
+    c("Audi", "BMW", "Mercedes", "Volkswagen"), # manufacturer
+    function(filename, manufacturer) {
+        read_csv(glue("./data/{filename}.csv"),
+            col_types = "fiififidd"
+        ) %>%
+            mutate(manufacturer = as_factor(manufacturer)) # add column
+    }
+) %>%
     reduce(~ bind_rows(.x, .y)) # Bind rows into single dataframe
-```
-
-```{r, include=FALSE}
-glimpse(df)
 ```
 
 Get a sample of 5000:
 
-```{r, sampleData}
+```{r sample_data}
 set.seed(19990428)
 df <- df %>%
     slice_sample(n = 5000)
 ```
 
-Add manufacturer to model column:
+Add `manufacturer` to `model`, convert `year` and `engineSize` to factors and add
+auxiliary factor variables for the numeric ones:
 
-```{r, models}
-df <- df %>%
-    mutate(model = as_factor(paste0(manufacturer, " - ", model)))
-```
-
-Add auxiliary auxiliary variables.
-
-```{r, aux_variables}
+```{r aux_variables}
 df <- df %>% mutate(
+    model = as_factor(paste0(manufacturer, " - ", model)),
     age = 2020 - year,
     aux_price = cut_number(price / 1000, 4),
     aux_mileage = cut_number(mileage / 1000, 4),
     aux_mpg = cut_number(mpg, 4),
     aux_tax = cut_number(tax, 2),
-    aux_age = cut_number(age, 4)
+    aux_age = cut_number(age, 4),
+    year = as_factor(year),
+    engineSize = as_factor(engineSize)
 )
 ```
 
-Convert year and engineSize to factor. We do it now so they have numeric
-ordering.
+## Summary
 
-```{r, factors}
-df <- df %>%
-    mutate(year = as_factor(year),
-           engineSize = as_factor(engineSize),
+```{r numeric_summary, echo = FALSE}
+df %>%
+    select(where(is.numeric)) %>%
+    papeR::summarize_numeric() %>%
+    kable(caption = "Summary of numeric variables", booktabs = TRUE) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+```{r factor_summary, echo = FALSE}
+df %>%
+    select(where(is.factor), -c(year, model, engineSize), -starts_with("aux_")) %>%
+    papeR::summarize_factor() %>%
+    kable(caption = "Summary of numeric variables", booktabs = TRUE) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE) %>%
+    footnote(general = "year, model and engineSize omitted")
+```
+
+```{r aux_summary, echo = FALSE}
+df %>%
+    select(starts_with("aux_")) %>%
+    papeR::summarize_factor() %>%
+    kable(caption = "Summary of auxiliary factor variables", booktabs = TRUE) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+If we count the number of `NA` values per row, we find that there are no
+explicit `NA` in the sample, as shown in \cref{tab:na}:
+
+```{r na, echo = FALSE}
+missings <- df %>%
+    select(-starts_with("aux_"), -age) %>%
+    summarise_all(~ sum(is.na(.))) %>%
+    pivot_longer(everything(),
+        names_to = "Variable",
+        values_to = "Missing"
+    )
+
+zeros <- df %>%
+    select(-starts_with("aux_"), -age) %>%
+    summarise_all(~ sum(. == 0)) %>%
+    pivot_longer(everything(),
+        names_to = "Variable",
+        values_to = "Zeros"
+    )
+
+left_join(missings, zeros, by = "Variable") %>%
+    kable(caption = "Number of missing and zero values per row", booktabs = TRUE) %>%
+    kable_styling(
+        latex_options = c("HOLD_position"),
+        full_width = FALSE
     )
 ```
 
-Check for NA.
-
-```{r, na}
-df %>%
-    summarise_all(~ sum(is.na(.))) %>%
-    glimpse()
-```
-
-```{r, load_sample}
-sample <- read_rds("./data/sample_clean_dataset.rds")
-summary(sample)
-summary(df)
-glimpse(sample)
-glimpse(df)
-```
-
-```{r, save, include=FALSE}
+```{r save, include=FALSE}
 source("io_checksum.R")
 write_rds_w_checksum(df, "./data/dataset.rds")
 ```
