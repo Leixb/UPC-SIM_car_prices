@@ -22,16 +22,19 @@ ggplot(df, aes(price)) +
     stat_function(
         fun = dnorm,
         args = list(mean = price_mean, sd = price_sd),
-        color = "red"
+        aes(color = "normal"),
     ) +
-    annotate("text", max(df$price) * 3 / 4, 1e-5,
-        color = "red",
+    geom_density(aes(color = "density"), linetype = "dashed") +
+    geom_text(aes(x = max(df$price) * 3 / 4, y = 1e-5,
+        color = "normal"),
         label = sprintf(
             "μ = %0.2f\nσ = %0.2f",
             price_mean,
             price_sd
         ),
-    )
+        show.legend = FALSE,
+    ) +
+    guides(color = guide_legend(title = NULL))
 ```
 
 ```{r q1_price_log_hist, echo = FALSE, fig.height = 3}
@@ -44,16 +47,19 @@ ggplot(df, aes(price_log)) +
     stat_function(
         fun = dnorm,
         args = list(mean = price_log_mean, sd = price_log_sd),
-        color = "red"
+        aes(color = "normal")
     ) +
-    annotate("text", 11, 0.75,
-        color = "red",
+    geom_density(aes(color = "density"), linetype = "dashed") +
+    geom_text(aes(x = 11, y = 0.75,
+        color = "normal"),
         label = sprintf(
             "μ = %0.2f\nσ = %0.2f",
             price_log_mean,
             price_log_sd
         ),
-    )
+        show.legend = FALSE,
+    ) +
+    guides(color = guide_legend(title = NULL))
 ```
 
 ```{r q1_shapiro}
