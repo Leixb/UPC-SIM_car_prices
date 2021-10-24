@@ -26,14 +26,16 @@ ggplot(df, aes(price)) +
         aes(color = "normal"),
     ) +
     geom_density(aes(color = "density"), linetype = "dashed") +
-    geom_text(aes(x = max(df$price) * 3 / 4, y = 1e-5,
-        color = "normal"),
-        label = sprintf(
-            "μ = %0.2f\nσ = %0.2f",
-            price_mean,
-            price_sd
-        ),
-        show.legend = FALSE,
+    geom_text(aes(
+        x = max(df$price) * 3 / 4, y = 1e-5,
+        color = "normal"
+    ),
+    label = sprintf(
+        "μ = %0.2f\nσ = %0.2f",
+        price_mean,
+        price_sd
+    ),
+    show.legend = FALSE,
     ) +
     guides(color = guide_legend(title = NULL))
 ```
@@ -51,14 +53,16 @@ ggplot(df, aes(price_log)) +
         aes(color = "normal")
     ) +
     geom_density(aes(color = "density"), linetype = "dashed") +
-    geom_text(aes(x = 11, y = 0.75,
-        color = "normal"),
-        label = sprintf(
-            "μ = %0.2f\nσ = %0.2f",
-            price_log_mean,
-            price_log_sd
-        ),
-        show.legend = FALSE,
+    geom_text(aes(
+        x = 11, y = 0.75,
+        color = "normal"
+    ),
+    label = sprintf(
+        "μ = %0.2f\nσ = %0.2f",
+        price_log_mean,
+        price_log_sd
+    ),
+    show.legend = FALSE,
     ) +
     guides(color = guide_legend(title = NULL))
 ```
@@ -111,9 +115,11 @@ cor_mat %>% corrplot()
 
 ```{r q2_corr}
 cor_mat %>%
-    kable(caption = "Spearman correlation coeficients",
-          booktabs = TRUE,
-          digits = 2) %>%
+    kable(
+        caption = "Spearman correlation coeficients",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
@@ -126,9 +132,11 @@ df_cond$quali %>%
     data.frame() %>%
     rownames_to_column("Variable") %>%
     select(-p.value) %>%
-    kable(caption = "Qualitative variable correlation with log(price)",
-          booktabs = TRUE,
-          digits = 2) %>%
+    kable(
+        caption = "Qualitative variable correlation with log(price)",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
@@ -137,9 +145,11 @@ df_cond$category %>%
     data.frame() %>%
     arrange(desc(abs(Estimate))) %>%
     rownames_to_column("Variable") %>%
-    kable(caption = "Qualitative categories correlation with log(price)",
-          booktabs = TRUE,
-          digits = 2) %>%
+    kable(
+        caption = "Qualitative categories correlation with log(price)",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
