@@ -210,7 +210,7 @@ model <- lm(price ~ age, data = df)
 model %>%
     xtable() %>%
     kable(
-        caption = "Linear regression on price ~ age",
+        caption = "Linear regression on price $\\sim$ age",
         booktabs = TRUE,
         digits = 2
     ) %>%
@@ -218,7 +218,7 @@ model %>%
 
 lm_tibble(model) %>%
     kable(
-        caption = "Linear regression on price ~ age statistics",
+        caption = "Linear regression on price $\\sim$ age statistics",
         booktabs = TRUE,
         digits = 2
     ) %>%
@@ -248,7 +248,7 @@ model_log <- lm(price_log ~ age, data = df)
 model_log %>%
     xtable() %>%
     kable(
-        caption = "Linear regression on log(price) ~ age ",
+        caption = "Linear regression on log(price) $\\sim$ age ",
         booktabs = TRUE,
         digits = 2
     ) %>%
@@ -256,7 +256,7 @@ model_log %>%
 
 lm_tibble(model_log) %>%
     kable(
-        caption = "Linear regression on log(price) ~ age statistics",
+        caption = "Linear regression on log(price) $\\sim$ age statistics",
         booktabs = TRUE,
         digits = 2
     ) %>%
