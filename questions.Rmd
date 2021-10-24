@@ -182,6 +182,66 @@ group_by(df, aux_age, fuelType) %>%
 <!-- 6. --> \pagebreak
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
 
+```{r q6, fig.height = 4, fig.width=6}
+model <- lm(price ~ age, data = df)
+summary(model) %>%
+    xtable() %>%
+    kable(
+        caption = "Linear regression on price ~ age",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+
+df %>%
+    ggplot(aes(age, price)) +
+    geom_boxplot(aes(group = age)) +
+    geom_smooth(method = "lm") +
+    labs(title = paste(
+        "Adj R2 = ", signif(summary(model)$adj.r.squared, 5),
+        "Intercept =", signif(model$coef[[1]], 5),
+        " Slope =", signif(model$coef[[2]], 5),
+        " P =", signif(summary(model)$coef[2, 4], 5)
+    ))
+
+```
+
+```{r q6_resid}
+qplot(seq(1, length(model$residuals)), model$residuals, geom = "point") +
+    geom_hline(aes(yintercept = 0), color = "red")
+```
+
+```{r q6_log, fig.height = 4, fig.width=6}
+
+model_log <- lm(price_log ~ age, data = df)
+summary(model_log) %>%
+    xtable() %>%
+    kable(
+        caption = "Linear regression on log(price) ~ age ",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+
+df %>%
+    ggplot(aes(age, price_log)) +
+    geom_boxplot(aes(group = age)) +
+    geom_smooth(method = "lm") +
+    labs(title = paste(
+        "Adj R2 = ", signif(summary(model_log)$adj.r.squared, 5),
+        "Intercept =", signif(model_log$coef[[1]], 5),
+        " Slope =", signif(model_log$coef[[2]], 5),
+        " P =", signif(summary(model_log)$coef[2, 4], 5)
+    ))
+```
+
+```{r q6_resid_log}
+qplot(seq(1, length(model_log$residuals)), model_log$residuals, geom = "point") +
+    geom_hline(aes(yintercept = 0), color = "red")
+```
+
+
+
 <!-- 7. --> \pagebreak
 ## What is the percentage of the price variability that is explained by the age of the car?
 
