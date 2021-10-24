@@ -193,11 +193,32 @@ group_by(df, aux_age, fuelType) %>%
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
 
 ```{r q6, fig.height = 4, fig.width=6}
+
+lm_tibble <- function(lm_model) {
+    summary_lm <- summary(lm_model)
+    with(summary_lm, tribble(
+            ~statistic, ~value,
+            "Residual standard error", sigma,
+            "Degrees of freedom", df,
+            "Multiple R-squared", r.squared,
+            "Adjusted R-squared", adj.r.squared,
+            "F-statistic", fstatistic,
+    ))
+}
+
 model <- lm(price ~ age, data = df)
-summary(model) %>%
+model %>%
     xtable() %>%
     kable(
         caption = "Linear regression on price ~ age",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+
+lm_tibble(model) %>%
+    kable(
+        caption = "Linear regression on price ~ age statistics",
         booktabs = TRUE,
         digits = 2
     ) %>%
@@ -224,10 +245,18 @@ qplot(seq(1, length(model$residuals)), model$residuals, geom = "point") +
 ```{r q6_log, fig.height = 4, fig.width=6}
 
 model_log <- lm(price_log ~ age, data = df)
-summary(model_log) %>%
+model_log %>%
     xtable() %>%
     kable(
         caption = "Linear regression on log(price) ~ age ",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+
+lm_tibble(model_log) %>%
+    kable(
+        caption = "Linear regression on log(price) ~ age statistics",
         booktabs = TRUE,
         digits = 2
     ) %>%
