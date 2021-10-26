@@ -116,7 +116,7 @@ cor_mat %>% corrplot()
 ```{r q2_corr}
 cor_mat %>%
     kable(
-        caption = "Spearman correlation coeficients",
+        caption = "Spearman correlation coefficients",
         booktabs = TRUE,
         digits = 2
     ) %>%

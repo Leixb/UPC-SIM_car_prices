@@ -25,7 +25,7 @@ options(knitr.table.format = function() {
 })
 if (isTRUE(getOption("knitr.in.progress"))) {
     options(width = 80)
-    # NOTE: This will still afect the options if you use the same R session
+    # NOTE: This will still affect the options if you use the same R session
     # after running knitr
 }
 
