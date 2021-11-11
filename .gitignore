@@ -1,6 +1,9 @@
 *.pdf
 *.rds
 _libs
+*.tex
+!titlepage.tex
+!preamble.tex
 
 # History files
 .Rhistory

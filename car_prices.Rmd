@@ -13,6 +13,7 @@ output:
         fig_caption: true
         number_sections: true
         dev: cairo_pdf
+        keep_tex: true
 ---
 
 ```{r include = FALSE}
