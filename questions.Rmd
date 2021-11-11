@@ -4,6 +4,8 @@ library(cowplot)
 library(corrplot)
 library(car)
 library(FactoMineR)
+library(lmtest)
+library(xtable)
 ```
 
 # Analysis
@@ -94,12 +96,41 @@ df$price %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 df$price_log %>% ks.test("pnorm", mean = mean(.), sd = sd(.))
 ```
 
-```{r q1_durbinWatson, cache = TRUE}
-durbinWatsonTest(lm(price ~ age, data = df))
-durbinWatsonTest(lm(price ~ mpg, data = df))
-durbinWatsonTest(lm(price ~ engineSize, data = df))
-durbinWatsonTest(lm(price ~ year, data = df))
-durbinWatsonTest(lm(price ~ mileage, data = df))
+```{r}
+dwtest_res <- dwtest(price ~ 1, data = df)
+```
+
+We perform a Durbin-Watson test with the null hypothesis that the
+autocorrelation of the disturbances is 0. We obtain a *p-value* of
+`r round(dwtest_res$p.value, 2)` so we fail to reject the null hypothesis.
+
+```{r}
+dwtest_res
+```
+
+The results of the test are consistent with the visual interpretation of
+the ACF plot^[lag 0 is omitted for clarity] shown in \cref{fig:acf}.
+All the values except lag = 33 lie within the confidence interval of 95%,
+showing that there is no autocorrelation.
+
+```{r acf, fig.cap = "ACF plot for price"}
+acf_res <- acf(df$price, plot = FALSE)
+acf_res_df <- with(acf_res, data.frame(lag, acf)) %>%
+    slice(-1) # Remove lag 0
+
+# Confidence interval
+acf_ci <- function(acf_res, alpha = 0.05) {
+    return(qnorm((1 + (1 - alpha)) / 2) / sqrt(acf_res$n.used))
+}
+
+conf_inter <- acf_ci(acf_res, 0.05)
+
+ggplot(data = acf_res_df, mapping = aes(x = lag, y = acf)) +
+   geom_hline(aes(yintercept = 0)) +
+   geom_segment(mapping = aes(xend = lag, yend = 0)) +
+   geom_hline(aes(yintercept = conf_inter), linetype = "dashed", color = "blue") +
+   geom_hline(aes(yintercept = -conf_inter), linetype = "dashed", color = "blue") +
+   labs(x = "Lag", y = "ACF")
 ```
 
 <!-- 2. --> \pagebreak
