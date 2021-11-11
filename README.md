@@ -1,5 +1,7 @@
 # ASSIGNMENT 1: CAR PRICES
 
+[![Super Linter](https://github.com/Leixb/UPC-SIM_car_prices/actions/workflows/super-linter.yml/badge.svg)](https://github.com/Leixb/UPC-SIM_car_prices/actions/workflows/super-linter.yml)
+
 Projects form an important part of the education of software engineers. They
 form an active method of teaching, as defined by Piaget, leading to a *"training
 in self-discipline and voluntary effort"*, which is important to software
