@@ -3,9 +3,6 @@ title: "Car prices"
 author:
     - Aleix Boné
     - David Gili
-header-includes:
-    - \usepackage{float}
-    - \usepackage{cleveref}
 tables: true
 output:
     pdf_document:
@@ -13,6 +10,7 @@ output:
         fig_caption: true
         number_sections: true
         dev: cairo_pdf
+        extra_dependencies: [ "float", "cleveref" ]
         keep_tex: true
 ---
 
