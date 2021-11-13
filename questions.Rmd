@@ -195,6 +195,16 @@ df %>%
 anova <- aov(price ~ aux_age, data = df)
 summary(anova)
 TukeyHSD(anova)
+
+# Check anova assumptions
+# Homogenity of variance
+plot(anova, 1)
+leveneTest(price ~ aux_age, data = df)
+bartlett.test(price ~ aux_age, data = df)
+
+# Normality assumption
+plot(anova, 2)
+shapiro.test(residuals(anova))
 ```
 
 
@@ -219,6 +229,10 @@ group_by(df, aux_age, fuelType) %>%
 
 <!-- 5. --> \pagebreak
 ## Do you think that the variability of the price depends on both factors? Does the relation between price and age factor depend on fuel type?
+
+```{r}
+summary(anova)
+```
 
 <!-- 6. --> \pagebreak
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
@@ -315,11 +329,43 @@ qplot(seq(1, length(model_log$residuals)), model_log$residuals, geom = "point") 
 <!-- 7. --> \pagebreak
 ## What is the percentage of the price variability that is explained by the age of the car?
 
+```{r}
+summary(model)
+```
+
+
 <!-- 8. --> \pagebreak
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
+```{r}
+lm_mileage <- lm(price ~ age + I(age^2), df)
+plot(lm_mileage)
+```
+
+
 <!-- 9. --> \pagebreak
 ## Are there any additional explanatory numeric variables needed to the car price? Study collinearity effects.
+
+```{r}
+lm <- lm(price ~ ., data = select(df, where(is.numeric)))
+summary(lm)
+
+# Collinearity
+df %>%
+    select(where(is.numeric)) %>%
+    cor(use = "complete.obs") %>%
+    corrplot()
+
+lm_mileage <- lm(mileage ~ . - price, select(df, where(is.numeric)))
+summary(lm_mileage)
+lm_tax <- lm(tax ~ . - price, select(df, where(is.numeric)))
+summary(lm_tax)
+lm_mpg <- lm(mpg ~ . - price, select(df, where(is.numeric)))
+summary(lm_mpg)
+lm_age <- lm(age ~ . - price, select(df, where(is.numeric)))
+summary(lm_age)
+```
+
 
 <!-- 10. --> \pagebreak
 ## After controlling by numerical variables, indicate whether the additive effect of the available factors on the price are statistically significant.
@@ -329,6 +375,13 @@ qplot(seq(1, length(model_log$residuals)), model_log$residuals, geom = "point") 
 
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
+
+```{r}
+lm <- lm(price_log ~ ., data = select(df, where(is.numeric)))
+summary(lm)
+plot(lm)
+```
+
 
 <!-- 13. --> \pagebreak
 ## Once explanatory numerical variables are included in the model, are there any main effects from factors needed?
