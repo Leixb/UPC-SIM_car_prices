@@ -126,11 +126,11 @@ acf_ci <- function(acf_res, alpha = 0.05) {
 conf_inter <- acf_ci(acf_res, 0.05)
 
 ggplot(data = acf_res_df, mapping = aes(x = lag, y = acf)) +
-   geom_hline(aes(yintercept = 0)) +
-   geom_segment(mapping = aes(xend = lag, yend = 0)) +
-   geom_hline(aes(yintercept = conf_inter), linetype = "dashed", color = "blue") +
-   geom_hline(aes(yintercept = -conf_inter), linetype = "dashed", color = "blue") +
-   labs(x = "Lag", y = "ACF")
+    geom_hline(aes(yintercept = 0)) +
+    geom_segment(mapping = aes(xend = lag, yend = 0)) +
+    geom_hline(aes(yintercept = conf_inter), linetype = "dashed", color = "blue") +
+    geom_hline(aes(yintercept = -conf_inter), linetype = "dashed", color = "blue") +
+    labs(x = "Lag", y = "ACF")
 ```
 
 <!-- 2. --> \pagebreak
@@ -242,12 +242,12 @@ summary(anova)
 lm_tibble <- function(lm_model) {
     summary_lm <- summary(lm_model)
     with(summary_lm, tribble(
-            ~statistic, ~value,
-            "Residual standard error", sigma,
-            "Degrees of freedom", df,
-            "Multiple R-squared", r.squared,
-            "Adjusted R-squared", adj.r.squared,
-            "F-statistic", fstatistic,
+        ~statistic, ~value,
+        "Residual standard error", sigma,
+        "Degrees of freedom", df,
+        "Multiple R-squared", r.squared,
+        "Adjusted R-squared", adj.r.squared,
+        "F-statistic", fstatistic,
     ))
 }
 
@@ -279,7 +279,6 @@ df %>%
         " Slope =", signif(model$coef[[2]], 5),
         " P =", signif(summary(model)$coef[2, 4], 5)
     ))
-
 ```
 
 ```{r q6_resid}
