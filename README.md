@@ -202,4 +202,4 @@ Describe these variables, to which other variables exist higher associations.
 > Lecturer in charge: Lídia Montero - MDS-SIM
 
 [1]: https://www.kaggle.com/adityadesai13/used-car-dataset-ford-and-mercedes
-[2]: ./MDS-SIM-21-22-ASSIGN1_MLG.pdf
+[2]: https://github.com/Leixb/UPC-SIM_car_prices/blob/documentation/MDS-SIM-21-22-ASSIGN1_MLG.pdf
