@@ -50,12 +50,12 @@ knit_hooks$set(output = output_hook)
 ```
 
 ```{r child = 'data_preparation.Rmd'}
+# Preprocessing
 ```
 
-```{=latex }
 \renewcommand\thesubsection{\arabic{subsection}.}
-```
 
 \pagebreak
 ```{r child = 'questions.Rmd'}
+# Questions
 ```
