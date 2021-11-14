@@ -14,14 +14,20 @@
         R-packages = with pkgs.rPackages; [
           FSelector
           FactoMineR
+          car
           corrplot
           cowplot
           devtools
           factoextra
+          ggfortify
+          kableExtra
+          knitr
+          lmtest
           maps
           mice
-          suncalc
+          papeR
           tidyverse
+          xtable
         ];
         R-dev-packages = with pkgs.rPackages; [
           docopt
@@ -83,11 +89,11 @@
             '';
 
             buildPhase = ''
-              R -e 'rmarkdown::render("document/document.Rmd", output_format="${target}", output_dir="build", output_options=list(self_contained=TRUE))'
+              R -e 'rmarkdown::render("car_prices.Rmd", output_format="${target}", output_dir="build", output_options=list(self_contained=TRUE))'
             '';
 
             installPhase = ''
-              rm -r build/document_files
+              rm -r build/car_prices_files
               mv build "$out"
             '';
 

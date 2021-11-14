@@ -1,4 +1,6 @@
 .direnv
+result
+
 *.pdf
 *.rds
 _libs
