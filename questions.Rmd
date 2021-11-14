@@ -6,6 +6,7 @@ library(car)
 library(FactoMineR)
 library(lmtest)
 library(xtable)
+library(ggfortify)
 ```
 
 # Analysis
@@ -336,9 +337,9 @@ summary(model)
 <!-- 8. --> \pagebreak
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
-```{r}
+```{r, fig.height=8}
 lm_mileage <- lm(price ~ age + I(age^2), df)
-plot(lm_mileage)
+autoplot(lm_mileage, ncol = 1)
 ```
 
 
@@ -375,10 +376,10 @@ summary(lm_age)
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
 
-```{r}
+```{r, fig.height=8}
 lm <- lm(price_log ~ ., data = select(df, where(is.numeric)))
 summary(lm)
-plot(lm)
+autoplot(lm, ncol = 1)
 ```
 
 
