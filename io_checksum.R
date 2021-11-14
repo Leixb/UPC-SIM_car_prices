@@ -3,7 +3,7 @@ library(glue)
 
 write_rds_w_checksum <- function(data, output_file,
                                  checksum_file = paste0(output_file, ".md5"), ...) {
-    write_rds(data, output_file, ...)
+    readr::write_rds(data, output_file, ...)
 
     # Write checksum to file
     cat(tools::md5sum(output_file), file = checksum_file, sep = "\n")
@@ -23,7 +23,7 @@ read_rds_w_checksum <- function(input_file,
         ))
     }
 
-    read_rds(input_file, ...)
+    readr::read_rds(input_file, ...)
 }
 
 generate_checksums <- function(folder = "./data", pattern = "(csv|rds)$", ...) {
