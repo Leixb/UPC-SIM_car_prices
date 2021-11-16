@@ -15,6 +15,7 @@
           FSelector
           FactoMineR
           car
+          chemometrics
           corrplot
           cowplot
           devtools

@@ -1,6 +1,7 @@
 ```{r, libraries, include=FALSE}
 library(tidyverse)
 library(glue)
+library(chemometrics)
 ```
 
 # Data preparation
@@ -101,6 +102,34 @@ left_join(missings, zeros, by = "Variable") %>%
         latex_options = c("HOLD_position"),
         full_width = FALSE
     )
+```
+
+## Outliers
+
+There are no severe outliers
+
+```{r severe_outliers}
+iqr <- function(x) {
+    tmp <- 3 * (quantile(x, 0.75, na.rm = TRUE) - quantile(x, 0.25, na.rm = TRUE))
+    a <- quantile(x, 0.25, na.rm = TRUE) - tmp
+    b <- quantile(x, 0.75, na.rm = TRUE) + tmp
+    !dplyr::between(x, a, b)
+}
+soutliers <- df %>%
+    mutate(across(where(is.numeric), iqr)) %>%
+    summarise(across(where(is.numeric), sum)) %>%
+    select(where(~ . != 0))
+
+soutliers
+```
+
+```{r moutliers}
+res_outliers <- df %>%
+    select(where(is.numeric), -year, -tax) %>%
+    Moutlier(quantile = 0.999, plot = FALSE)
+
+df <- df %>%
+    add_column(outlier = res_outliers$md > res_outliers$cutoff)
 ```
 
 ```{r save, include=FALSE}
