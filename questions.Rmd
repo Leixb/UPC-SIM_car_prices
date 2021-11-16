@@ -15,6 +15,11 @@ library(ggfortify)
 ```
 
 # Analysis
+```{r}
+source("io_checksum.R")
+df <- read_rds_w_checksum("./data/dataset.rds")
+```
+
 
 <!-- 1 -->
 ## Determine if the response variable (price) has an acceptably normal distribution. Address test to discard serial correlation.
@@ -76,8 +81,8 @@ ggplot(df, aes(price_log)) +
 ```
 
 ```{r q1_shapiro}
-shap_res <- shapiro.test(df$price); shap_res
-log_shap_res <- shapiro.test(df$price_log); log_shap_res
+(shap_res <- shapiro.test(df$price))
+(log_shap_res <- shapiro.test(df$price_log))
 ```
 
 The histogram of the price shows a very right skewed distribution which does not
@@ -234,8 +239,8 @@ df %>%
     ggplot(aes(x = aux_age, y = price, fill = fuelType)) +
     geom_boxplot()
 
-m2 <- aov(price ~ aux_age * fuelType, data = df)
-summary(m2)
+anova <- aov(price ~ aux_age * fuelType, data = df)
+summary(anova)
 
 group_by(df, aux_age, fuelType) %>%
     summarise(
@@ -251,8 +256,16 @@ Anova results show that the main effects of both factors are significant.
 ## Do you think that the variability of the price depends on both factors? Does the relation between price and age factor depend on fuel type?
 
 ```{r}
-summary(m2)
+(fligner_price <- fligner.test(price ~ fuelType, data=df))
+(fligner_age <- fligner.test(price ~ aux_age, data=df))
+(fligner_int <- fligner.test(price ~ interaction(aux_age,fuelType), data=df))
 ```
+We execute Fligner-Killeen test with each factor and the interaction of both. The resulting *p.values* are 
+`r fligner_price$p.value` for the price, `r fligner_age$p.value` for the age and `r fligner_int$p.value`
+combining both. In the case of age and age:fuelType, results show that there is clear evidence to reject the 
+null hypotesis of equal variances for all groups. The results when grouping by fuelType are more inconclusive 
+as the *p.value* is slightly over significance level.
+
 
 <!-- 6. --> \pagebreak
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
@@ -271,8 +284,8 @@ lm_tibble <- function(lm_model) {
     ))
 }
 
-model <- lm(price ~ age, data = df)
-model %>%
+model1 <- lm(price ~ age, data = df)
+model1 %>%
     xtable() %>%
     kable(
         caption = "Linear regression on price $\\sim$ age",
@@ -306,61 +319,38 @@ qplot(seq(1, length(model$residuals)), model$residuals, geom = "point") +
     geom_hline(aes(yintercept = 0), color = "red")
 ```
 
-```{r q6_log, fig.height = 4, fig.width=6}
-
-model_log <- lm(price_log ~ age, data = df)
-model_log %>%
-    xtable() %>%
-    kable(
-        caption = "Linear regression on log(price) $\\sim$ age ",
-        booktabs = TRUE,
-        digits = 2
-    ) %>%
-    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
-
-lm_tibble(model_log) %>%
-    kable(
-        caption = "Linear regression on log(price) $\\sim$ age statistics",
-        booktabs = TRUE,
-        digits = 2
-    ) %>%
-    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
-
-df %>%
-    ggplot(aes(age, price_log)) +
-    geom_boxplot(aes(group = age)) +
-    geom_smooth(method = "lm") +
-    labs(title = paste(
-        "Adj R2 = ", signif(summary(model_log)$adj.r.squared, 5),
-        "Intercept =", signif(model_log$coef[[1]], 5),
-        " Slope =", signif(model_log$coef[[2]], 5),
-        " P =", signif(summary(model_log)$coef[2, 4], 5)
-    ))
-```
-
-```{r q6_resid_log}
-qplot(seq(1, length(model_log$residuals)), model_log$residuals, geom = "point") +
-    geom_hline(aes(yintercept = 0), color = "red")
-```
-
-
 
 <!-- 7. --> \pagebreak
 ## What is the percentage of the price variability that is explained by the age of the car?
 
 ```{r}
-summary(model)
+summary(model1)
 ```
+The age explains `r summary(model1)$adj.r.squared` of the price variability. 
+
 
 
 <!-- 8. --> \pagebreak
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
 ```{r, fig.height=8}
-m3 <- lm(price ~ age + I(age^2), df)
-autoplot(m3, ncol = 1)
-anova(m2,m3)
+model2 <- lm(price ~ age + I(age^2), df)
+summary(model2)
+
+(anova <- anova(model1, model2))
+autoplot(model2, ncol = 1)
 ```
+
+The new model explains `r summary(model2)$adj.r.squared` of the price variance which
+is an improvement from the previous one. Moreover the quadratic age term seems to
+be relevant because when testing if its coefficient is equal to zero we get a really
+small *p.value*.
+
+Moreover, we compare the previous model with the new one which adds the quadratic term
+using ANOVA. The resulting small *p.value* of `r anova$p.value` makes us reject the
+null hypotesis of equal means. This implies that the new model significantly improves
+on the previous one.
+
 
 
 <!-- 9. --> \pagebreak
