@@ -3,6 +3,8 @@ library(tidyverse)
 library(glue)
 library(chemometrics)
 library(missForest)
+library(cowplot)
+library(doParallel)
 ```
 
 # Data preparation
@@ -194,7 +196,7 @@ is_severe_outlier <- function(x) {
 }
 
 # Create logical columns labelling values as outliers
-soutliers <- df %>%
+df_outliers <- df %>%
     mutate(across(where(is.numeric),
         is_severe_outlier,
         .names = "sout_{col}")) %>%
@@ -206,7 +208,7 @@ soutliers <- df %>%
 there are no individuals with more than 3 severe outliers).
 
 ```{r outliers_ind}
-soutliers %>% group_by(n_outliers) %>% summarise(count = n()) %>%
+df_outliers %>% group_by(n_outliers) %>% summarise(count = n()) %>%
     kable(caption = "Number of severe outliers per individuals", booktabs = TRUE) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
@@ -215,7 +217,7 @@ The cars with 3 outliers are shown in \cref{tab:outliers_3} and have outliers
 in `tax`, `mileage` and `age`.
 
 ```{r outliers_3}
-soutliers %>%
+df_outliers %>%
     select(model, n_outliers, year, mileage, tax, age) %>%
     arrange(desc(n_outliers)) %>%
     filter(n_outliers > 2) %>%
@@ -226,7 +228,7 @@ soutliers %>%
 
 
 ```{r soutliers_summary}
-soutliers %>%
+df_outliers %>%
     summarise(across(starts_with("sout_"), sum)) %>%
     rename_with(~ gsub("sout_", "", .)) %>%
     kable(caption = "Number of severe outliers per variable", booktabs = TRUE) %>%
@@ -262,7 +264,7 @@ res_outliers <- df %>%
     select(where(is.numeric), -year, -tax) %>%
     Moutlier(quantile = 0.999, plot = FALSE)
 
-df <- df %>%
+df_outliers <- df_outliers %>%
     add_column(
         moutlier_md = res_outliers$md,
         moutlier = res_outliers$md > res_outliers$cutoff
@@ -270,12 +272,12 @@ df <- df %>%
 ```
 
 To detect multivariate outliers, we use  `Moutlier` form the `chemometrics`
-package. We found `r sum(df$moutlier)` multivariate outliers.
+package. We found `r sum(df_outliers$moutlier)` multivariate outliers.
 \Cref{tab:moutliers_list} shows a list of the 10 individuals with biggest Mahalanobis
 distance.
 
 ```{r moutliers_list}
-df %>%
+df_outliers %>%
     filter(moutlier) %>%
     select(model, age, price, mileage, tax, mpg, fuelType, engineSize,
            transmission, moutlier_md) %>%
@@ -302,25 +304,25 @@ df %>%
     kable(caption = "Individuals with engineSize 0 by fuelType", booktabs = TRUE) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 
-df <- df %>%
+df_outliers <- df_outliers %>%
     mutate(imputed = engineSize == 0)
 
 df[df$engineSize == "0", ] <- NA
 ```
 
-```{r imputation, cache = TRUE, results='hide'}
-
+```{r imputation, results='hide', cache = TRUE}
+registerDoParallel(cores=detectCores())
 df_imp <- df %>%
-    select(-model) %>%
+    select(-c(model, -starts_with("aux_"))) %>%
     as.data.frame() %>%
-    missForest()
+    missForest(parallelize = "forests")
 
 oob_error <- df_imp$OOBerror
 
-df_imp <- df_imp$ximp %>% as_tibble()
+df <- df %>% add_column(engineSize = df_imp$engineSize)
 ```
 
-```{r save, include=FALSE}
+```{r save, include = FALSE}
 source("io_checksum.R")
-write_rds_w_checksum(df_imp, "./data/dataset.rds")
+write_rds_w_checksum(df, "./data/dataset.rds")
 ```
