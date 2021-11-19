@@ -189,7 +189,7 @@ which values are outside the range `(Q1 - 3*IQR, Q3 + 3*IQR)`.
 
 ```{r severe_outliers}
 is_severe_outlier <- function(x) {
-    tmp <- 3 * IQR(x)
+    tmp <- 3 * IQR(x, na.rm = TRUE)
     a <- quantile(x, 0.25, na.rm = TRUE) - tmp
     b <- quantile(x, 0.75, na.rm = TRUE) + tmp
     !dplyr::between(x, a, b)

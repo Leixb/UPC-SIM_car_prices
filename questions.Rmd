@@ -12,6 +12,7 @@ library(FactoMineR)
 library(lmtest)
 library(xtable)
 library(ggfortify)
+library(MASS)
 ```
 
 # Analysis
@@ -376,12 +377,12 @@ The age explains `r summary(model1)$adj.r.squared` of the price variability.
 <!-- 8. --> \pagebreak
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
-```{r, fig.height=8}
+```{r, fig.height = 6, fig.width = 8}
 model2 <- lm(price ~ age + I(age^2), df)
 summary(model2)
 
 (anova <- anova(model1, model2))
-autoplot(model2, ncol = 1)
+autoplot(model2, ncol = 2)
 ```
 
 The new model explains `r summary(model2)$adj.r.squared` of the price variance which
@@ -435,10 +436,10 @@ log_model
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
 
-```{r, fig.height=8}
+```{r, fig.height = 6, fig.width = 8}
 log_model <- lm(price_log ~ ., data = select(df, -price & where(is.numeric)))
 summary(log_model)
-autoplot(log_model, ncol = 1)
+autoplot(log_model, ncol = 2)
 ```
 
 
@@ -454,8 +455,30 @@ anova(m5)
 <!-- 14. --> \pagebreak
 ## Graphically assess the best model obtained so far.
 
+```{r}
+best_model <- m5
+```
+
+
 <!-- 15. --> \pagebreak
 ## Assess the presence of outliers in the studentized residuals at a 99% confidence level. Indicate what those observations are.
+
+```{r}
+stud_resids <- studres(best_model)
+
+plot(df$age, stud_resids)
+abline(0, 0)
+
+df <- df %>%
+    add_column(stud_resids = studres(best_model)) %>%
+    mutate(stud_outlier = is_severe_outlier(stud_resids))
+
+df %>%
+    ggplot(aes(age, stud_resids, color = stud_outlier)) +
+    geom_jitter() +
+    geom_hline(yintercept = 0, color = "red")
+```
+
 
 <!-- 16. --> \pagebreak
 ## Study the presence of a priori influential data observations, indicating their number according to the criteria studied in class.
