@@ -44,7 +44,7 @@ ggplot(df, aes(price)) +
         color = "normal"
     ),
     label = sprintf(
-        "μ = %0.2f\nσ = %0.2f",
+        "x̄ = %0.2f\ns = %0.2f",
         price_mean,
         price_sd
     ),
@@ -71,7 +71,7 @@ ggplot(df, aes(price_log)) +
         color = "normal"
     ),
     label = sprintf(
-        "μ = %0.2f\nσ = %0.2f",
+        "x̄ = %0.2f\ns = %0.2f",
         price_log_mean,
         price_log_sd
     ),
