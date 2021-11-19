@@ -323,7 +323,7 @@ model1 %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-```{r q6_stats, fig.height = 4, fig.width=6}
+```{r q6_stats}
 lm_tibble(model) %>%
     kable(
         caption = "Linear regression on price $\\sim$ age statistics",
@@ -332,6 +332,9 @@ lm_tibble(model) %>%
     ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 
+```
+
+```{r q6_plot, fig.height = 4, fig.width=6, fig.cap = "Linear model price ~ age"}
 df %>%
     ggplot(aes(age, price)) +
     geom_boxplot(aes(group = age)) +
@@ -344,12 +347,12 @@ df %>%
     ))
 ```
 
-```{r q6_resid, fig.height = 6, fig.width = 8}
+```{r q6_resid, fig.height = 6, fig.width = 8, fig.cap = "Model residuals"}
 autoplot(model1)
 ```
 
-\Cref{fig:q6_stats} shows the linear regression model on `price ~ age`. The
-relevant data is shown in \cref{tab:q6_model, tab:q6_stats}.
+\Cref{fig:q6_plot} shows the linear regression model on `price ~ age`. The
+relevant data is shown in \cref{tab:q6_model,tab:q6_stats}.
 
 ```{r q6_bptest}
 (q6_bp <- bptest(model1))
@@ -357,7 +360,7 @@ relevant data is shown in \cref{tab:q6_model, tab:q6_stats}.
 
 In \cref{fig:q6_resid} we can see that the residuals seem to not hold
 homoskedasticity. Performing a Breusch-Pagan Test we see that the _p-value_
-is `r q6$p.value` which is less than 0.05 and thus we reject the NULL hypothesis
+is `r q6_bp$p.value` which is less than 0.05 and thus we reject the NULL hypothesis
 of homoskedasticity.
 
 <!-- 7. --> \pagebreak
