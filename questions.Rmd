@@ -96,10 +96,10 @@ and the new distribution seems to resemble a normal bell shape. However the Shap
 returns a similarly low *p-value* of `r log_shap_res$p.value`, which makes us
 reject the null hypothesis of normality.
 
+\Cref{fig:q1_qq_plots} shows the QQ plots of `price` and `log*(price)`. We can
+see that `price` clearly does not follow a normal distribution and that
+`log(price)` is heavy tailed.
 
-
-
-\Cref{fig:q1_qq_plots} shows the QQ plots.
 
 ```{r q1_qq_plots, echo=FALSE, fig.cap="QQ plots", fig.width=6}
 plt_qq_price <- ggplot(df, aes(sample = price)) +
@@ -156,6 +156,15 @@ ggplot(data = acf_res_df, mapping = aes(x = lag, y = acf)) +
 <!-- 2. --> \pagebreak
 ## Indicate by exploration of the data, which are apparently the variables most associated with the response variable (use only the indicated variables).
 
+Since we determined that `price` does not follow a normal distribution, we
+compute a correlation matrix using the `spearman` coefficient. The plot
+of the correlation is shown in \cref{fig:q2_corrplot} and shows that the
+numerical variables most associated with price are: `age`, `mileage` and
+`mpg`. Surprisingly, `tax` has the lowest correlation coefficient. The
+specific values of the correlation matrix are shown in \cref{tab:q2_corr}.
+
+is a clear
+
 ```{r q2_corrplot, fig.cap = "Spearman correlation plot", fig.height = 2.5}
 cor_mat <- df %>%
     select(where(is.numeric), -price_log) %>%
@@ -174,42 +183,45 @@ cor_mat %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
+Using `condes` method from `FactoMineR`, we computed the correlation with the
+qualitative variables. The most relevant qualitative variable is `model`,
+closely followed by `engineSize` and then `year` (this correlates with the
+results of the numerical variable `age`). Finally, `transmission` has little
+less significance and `manufacturer` and `fuelType` have almost no significance.
+
 ```{r q2_factors}
 df_cond <- df %>%
-    select(-c(model, aux_price)) %>%
-    condes(which(colnames(.) == "price_log"))
+    select(-c(starts_with("aux_"))) %>%
+    condes(which(colnames(.) == "price"))
 
 df_cond$quali %>%
     data.frame() %>%
     rownames_to_column("Variable") %>%
     select(-p.value) %>%
     kable(
-        caption = "Qualitative variable correlation with log(price)",
+        caption = "Qualitative variable correlation with price",
         booktabs = TRUE,
         digits = 2
     ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
-```{r q2_factors_cat}
-df_cond$category %>%
-    data.frame() %>%
-    arrange(desc(abs(Estimate))) %>%
-    rownames_to_column("Variable") %>%
-    kable(
-        caption = "Qualitative categories correlation with log(price)",
-        booktabs = TRUE,
-        digits = 2
-    ) %>%
-    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
-```
+The variables most associated with our response variable are (in decreasing
+order of importance):
+
+- `model`
+- `engineSize`
+- `year` / `age`
+- `mileage`
+- `mpg`
 
 <!-- 3. --> \pagebreak
 ## Define a polytomic factor f.age for the covariate car age according to its quartiles, and argue if the average price depends on the level of age.  Statistically justify the answer.
 
-We start by checking the ANOVA assumptions of normality and homogneity of variance.
+We start by checking the ANOVA assumptions of normality and homogeneity of
+variance.
 
-```{r anova_assumptions}
+```{r anova_assumptions, fig.cap = "Boxplot of price by age group"}
 df %>%
     ggplot(aes(x = aux_age, y = price, fill = aux_age)) +
     geom_boxplot()
@@ -222,14 +234,17 @@ model <- lm(price ~ aux_age, data = df)
 shapiro.test(residuals(model))
 ```
 The fligner test returns a *p-value* of `r flig_res$p.value` which makes us reject the
-null hypotesis of homoscedasticity. Additionally, we can't assume normality. For this
+null hypothesis of homoscedasticity. Additionally, we can't assume normality. For this
 reason we will use the non-parametric Kruskal-Wallis test.
 
 ```{r q3_bp}
-kruskal_res <- kruskal.test(price ~ aux_age, data = df); kruskal_res
+(kruskal_res <- kruskal.test(price ~ aux_age, data = df))
 ```
-The test returns a *p.value* of
-
+The test returns a *p.value* of `r kruskal_res$p.value`. Which is less than
+the significance level and thus we reject the NULL hypothesis that the location
+parameters of all the samples are equal. We have statistical proof that
+the average `price` does depend on the `age`. The visual inspection of
+the boxplots in \cref{fig:anova_assumptions} is consistent with the results.
 
 <!-- 4. --> \pagebreak
 ## Calculate and interpret the anova model that explains car price according to the age factor and the fuel type.
@@ -241,36 +256,49 @@ df %>%
 
 anova <- aov(price ~ aux_age * fuelType, data = df)
 summary(anova)
+```
+Anova results show that the both factors are significant (_p.value < 0.05_) as
+well as their interaction.
 
-group_by(df, aux_age, fuelType) %>%
+```{r q4_summary}
+df %>%
+    group_by(aux_age, fuelType) %>%
     summarise(
         count = n(),
-        mean = mean(price, na.rm = TRUE),
-        sd = sd(price, na.rm = TRUE)
-    )
+        mean = mean(price),
+        sd = sd(price),
+        .groups = "keep"
+    ) %>%
+    kable(
+        caption = "Summary of price by age and fuelType",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+
 ```
-Anova results show that the main effects of both factors are significant.
 
 
 <!-- 5. --> \pagebreak
 ## Do you think that the variability of the price depends on both factors? Does the relation between price and age factor depend on fuel type?
 
 ```{r}
-(fligner_price <- fligner.test(price ~ fuelType, data=df))
-(fligner_age <- fligner.test(price ~ aux_age, data=df))
-(fligner_int <- fligner.test(price ~ interaction(aux_age,fuelType), data=df))
+(fligner_price <- fligner.test(price ~ fuelType, data = df))
+(fligner_age <- fligner.test(price ~ aux_age, data = df))
+(fligner_int <- fligner.test(price ~ interaction(aux_age, fuelType), data = df))
 ```
-We execute Fligner-Killeen test with each factor and the interaction of both. The resulting *p.values* are
-`r fligner_price$p.value` for the price, `r fligner_age$p.value` for the age and `r fligner_int$p.value`
-combining both. In the case of age and age:fuelType, results show that there is clear evidence to reject the
-null hypotesis of equal variances for all groups. The results when grouping by fuelType are more inconclusive
-as the *p.value* is slightly over significance level.
-
+We execute Fligner-Killeen test with each factor and the interaction of both.
+The resulting *p.values* are `r fligner_price$p.value` for the price,
+`r fligner_age$p.value` for the age and `r fligner_int$p.value` combining both.
+In the case of `age` and `age:fuelType`, results show that there is clear
+evidence to reject the null hypothesis of equal variances for all groups. The
+results when grouping by `fuelType` are more inconclusive as the *p.value* is
+slightly over significance level.
 
 <!-- 6. --> \pagebreak
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
 
-```{r q6, fig.height = 4, fig.width=6}
+```{r q6_model}
 
 lm_tibble <- function(lm_model) {
     summary_lm <- summary(lm_model)
@@ -293,7 +321,9 @@ model1 %>%
         digits = 2
     ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
 
+```{r q6_stats, fig.height = 4, fig.width=6}
 lm_tibble(model) %>%
     kable(
         caption = "Linear regression on price $\\sim$ age statistics",
@@ -305,7 +335,7 @@ lm_tibble(model) %>%
 df %>%
     ggplot(aes(age, price)) +
     geom_boxplot(aes(group = age)) +
-    geom_smooth(method = "lm") +
+    geom_smooth(method = "lm", formula = "y ~ x") +
     labs(title = paste(
         "Adj R2 = ", signif(summary(model)$adj.r.squared, 5),
         "Intercept =", signif(model$coef[[1]], 5),
@@ -314,11 +344,21 @@ df %>%
     ))
 ```
 
-```{r q6_resid}
-qplot(seq(1, length(model$residuals)), model$residuals, geom = "point") +
-    geom_hline(aes(yintercept = 0), color = "red")
+```{r q6_resid, fig.height = 6, fig.width = 8}
+autoplot(model1)
 ```
 
+\Cref{fig:q6_stats} shows the linear regression model on `price ~ age`. The
+relevant data is shown in \cref{tab:q6_model, tab:q6_stats}.
+
+```{r q6_bptest}
+(q6_bp <- bptest(model1))
+```
+
+In \cref{fig:q6_resid} we can see that the residuals seem to not hold
+homoskedasticity. Performing a Breusch-Pagan Test we see that the _p-value_
+is `r q6$p.value` which is less than 0.05 and thus we reject the NULL hypothesis
+of homoskedasticity.
 
 <!-- 7. --> \pagebreak
 ## What is the percentage of the price variability that is explained by the age of the car?
@@ -348,7 +388,7 @@ small *p.value*.
 
 Moreover, we compare the previous model with the new one which adds the quadratic term
 using ANOVA. The resulting small *p.value* of `r anova$p.value` makes us reject the
-null hypotesis of equal means. This implies that the new model significantly improves
+null hypothesis of equal means. This implies that the new model significantly improves
 on the previous one.
 
 
