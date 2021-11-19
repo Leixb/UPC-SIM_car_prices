@@ -92,8 +92,8 @@ of normality.
 
 Additionally, we also checked if the price followed a log normal distribution. If we
 analyse the new histogram we can see that the log transformation corrected the skewness
-and the new distribution seems to resemble a normal bell shape. However the Shapiro test 
-returns a similarly low *p-value* of `r log_shap_res$p.value`, which makes us 
+and the new distribution seems to resemble a normal bell shape. However the Shapiro test
+returns a similarly low *p-value* of `r log_shap_res$p.value`, which makes us
 reject the null hypothesis of normality.
 
 
@@ -228,7 +228,7 @@ reason we will use the non-parametric Kruskal-Wallis test.
 ```{r q3_bp}
 kruskal_res <- kruskal.test(price ~ aux_age, data = df); kruskal_res
 ```
-The test returns a *p.value* of   
+The test returns a *p.value* of
 
 
 <!-- 4. --> \pagebreak
@@ -249,7 +249,7 @@ group_by(df, aux_age, fuelType) %>%
         sd = sd(price, na.rm = TRUE)
     )
 ```
-Anova results show that the main effects of both factors are significant. 
+Anova results show that the main effects of both factors are significant.
 
 
 <!-- 5. --> \pagebreak
@@ -260,10 +260,10 @@ Anova results show that the main effects of both factors are significant.
 (fligner_age <- fligner.test(price ~ aux_age, data=df))
 (fligner_int <- fligner.test(price ~ interaction(aux_age,fuelType), data=df))
 ```
-We execute Fligner-Killeen test with each factor and the interaction of both. The resulting *p.values* are 
+We execute Fligner-Killeen test with each factor and the interaction of both. The resulting *p.values* are
 `r fligner_price$p.value` for the price, `r fligner_age$p.value` for the age and `r fligner_int$p.value`
-combining both. In the case of age and age:fuelType, results show that there is clear evidence to reject the 
-null hypotesis of equal variances for all groups. The results when grouping by fuelType are more inconclusive 
+combining both. In the case of age and age:fuelType, results show that there is clear evidence to reject the
+null hypotesis of equal variances for all groups. The results when grouping by fuelType are more inconclusive
 as the *p.value* is slightly over significance level.
 
 
@@ -326,7 +326,7 @@ qplot(seq(1, length(model$residuals)), model$residuals, geom = "point") +
 ```{r}
 summary(model1)
 ```
-The age explains `r summary(model1)$adj.r.squared` of the price variability. 
+The age explains `r summary(model1)$adj.r.squared` of the price variability.
 
 
 
