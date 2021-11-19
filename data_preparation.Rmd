@@ -307,7 +307,7 @@ df %>%
 df_outliers <- df_outliers %>%
     mutate(imputed = engineSize == 0)
 
-df[df$engineSize == "0", ] <- NA
+df[df$engineSize == "0", "engineSize"] <- NA
 ```
 
 ```{r imputation, results='hide', cache = TRUE}
@@ -319,7 +319,7 @@ df_imp <- df %>%
 
 oob_error <- df_imp$OOBerror
 
-df <- df %>% add_column(engineSize = df_imp$engineSize)
+df <- df %>% mutate(engineSize = df_imp$ximp$engineSize)
 ```
 
 ```{r save, include = FALSE}
