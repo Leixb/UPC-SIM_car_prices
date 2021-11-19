@@ -2,6 +2,7 @@
 library(tidyverse)
 library(glue)
 library(chemometrics)
+library(mice)
 ```
 
 # Data preparation
@@ -130,6 +131,104 @@ res_outliers <- df %>%
 
 df <- df %>%
     add_column(outlier = res_outliers$md > res_outliers$cutoff)
+```
+
+## Engine size and fuelType
+
+There where only 3 electric cars in the original dataset before the sample,
+in our sample, we have:
+
+```{r}
+df %>%
+    group_by(fuelType) %>%
+    summarise(n = n())
+```
+
+```{r}
+df %>%
+    ggplot(aes(engineSize, fuelType)) + geom_jitter()
+```
+
+```{r}
+df %>%
+    filter(engineSize == 0) %>%
+    group_by(fuelType) %>%
+    summarise(n = n())
+
+df %>% group_by(model) %>% summarise(n = n()) %>% arrange(model) %>% view()
+
+df[df$engineSize == 0, "engineSize"] <- NA
+
+forcats::fct_inseq(df$model)
+
+levels(df$model) <- sort(as.character(unique(df$model)))
+
+```
+
+# EDA
+
+```{r na_ind}
+df_sum <- df %>% transmute(
+    zero_count = rowSums(across(
+        c(
+            where(is.numeric),
+            -any_of(c("hour", "na_count", "zero_count"))
+        ),
+        ~ . == 0
+    ), na.rm = TRUE),
+    na_count = rowSums(across(everything(), is.na)),
+)
+
+df_sum %>%
+    summarise(
+        total_na = sum(na_count),
+        nrows = sum(na_count != 0)
+    )
+
+df_sum
+```
+
+```{r na_var}
+na_columns <- df %>%
+    summarise_all(~ sum(is.na(.))) %>%
+    rename_with(~ paste0(., "-NA"))
+zero_columns <- df %>%
+    summarise_all(~ sum(. == 0, na.rm = TRUE)) %>%
+    rename_with(~ paste0(., "-Zeros"))
+
+cbind(na_columns, zero_columns) %>%
+    pivot_longer(everything(),
+        names_to = c("variable", ".value"), names_sep = "-"
+    ) %>%
+    filter(!endsWith(variable, "_count") & !startsWith(variable, "aux_")) %>%
+    kable(
+        caption = "List of all NA or zeros by variable", booktabs = TRUE,
+        col.names = c("Variable", "NA", "Zeros"),
+        align = "lrr"
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position")) %>%
+    add_header_above(c(" " = 1, "Number of:" = 2))
+```
+
+
+# Imputation
+
+We perform imputation with randomForest on the values marked with `NA`.
+
+```{r}
+
+library(missForest)
+
+df_imp <- df %>%
+    select(-model) %>%
+    as.data.frame() %>%
+    missForest()
+
+oob_error <- df_imp$OOBerror
+
+df_imp <- df_imp$ximp %>% as_tibble()
+
+
 ```
 
 ```{r save, include=FALSE}
