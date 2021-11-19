@@ -10,7 +10,7 @@ output:
         fig_caption: true
         number_sections: true
         dev: cairo_pdf
-        extra_dependencies: [ "float", "cleveref" ]
+        extra_dependencies: [ "float", "cleveref" , "multicol"]
         keep_tex: true
 ---
 
