@@ -180,14 +180,16 @@ numerical variables most associated with price are: `age`, `mileage` and
 `mpg`. Surprisingly, `tax` has the lowest correlation coefficient. The
 specific values of the correlation matrix are shown in \cref{tab:q2_corr}.
 
-is a clear
-
 ```{r q2_corrplot, fig.cap = "Spearman correlation plot", fig.height = 2.5}
 cor_mat <- df %>%
     select(where(is.numeric), -price_log) %>%
     cor(use = "complete.obs", method = "spearman")
 
 cor_mat %>% corrplot()
+```
+
+```{=latex }
+\begin{multicols}{2}
 ```
 
 ```{r q2_corr}
@@ -199,12 +201,6 @@ cor_mat %>%
     ) %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
-
-Using `condes` method from `FactoMineR`, we computed the correlation with the
-qualitative variables. The most relevant qualitative variable is `model`,
-closely followed by `engineSize` and then `year` (this correlates with the
-results of the numerical variable `age`). Finally, `transmission` has little
-less significance and `manufacturer` and `fuelType` have almost no significance.
 
 ```{r q2_factors}
 df_cond <- df %>%
@@ -223,14 +219,25 @@ df_cond$quali %>%
     kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
 
+```{=latex }
+\end{multicols}
+```
+
+Using `condes` method from `FactoMineR`, we computed the correlation with the
+qualitative variables as shown in \cref{tab:q2_factors}. The most relevant
+qualitative variable is `model`, closely followed by `engineSize` and then
+`year` (this correlates with the results of the numerical variable `age`).
+Finally, `transmission` has little less significance and `manufacturer` and
+`fuelType` have almost no significance.
+
 The variables most associated with our response variable are (in decreasing
 order of importance):
 
-- `model`
-- `engineSize`
-- `year` / `age`
-- `mileage`
-- `mpg`
+1. `model`
+1. `engineSize`
+1. `year` / `age`
+1. `mileage`
+1. `mpg`
 
 <!-- 3. --> \pagebreak
 ## Define a polytomic factor f.age for the covariate car age according to its quartiles, and argue if the average price depends on the level of age.  Statistically justify the answer.
@@ -308,9 +315,9 @@ We execute Fligner-Killeen test with each factor and the interaction of both.
 The resulting *p.values* are `r pval(fligner_price)` for the price,
 `r pval(fligner_age)` for the age and `r pval(fligner_int)` combining both.
 In the case of `age` and `age:fuelType`, results show that there is clear
-evidence to reject the null hypothesis of equal variances for all groups. The
-results when grouping by `fuelType` are more inconclusive as the *p.value* is
-slightly over significance level.
+evidence to reject the null hypothesis of equal variances for all groups.
+The results when grouping by `fuelType` are more inconclusive as the *p.value*
+is slightly over significance level.
 
 <!-- 6. --> \pagebreak
 ## Calculate the linear regression model that explains the price from the age: interpret the regression line and assess its quality.
@@ -369,7 +376,11 @@ autoplot(model1)
 ```
 
 \Cref{fig:q6_plot} shows the linear regression model on `price ~ age`. The
-relevant data is shown in \cref{tab:q6_model,tab:q6_stats}.
+model parameters and statistics is shown in \cref{tab:q6_model,tab:q6_stats}.
+A simple visual analysis shows that around 10 years, the `price` in our model
+goes negative, which does not make sense in the real world. The fit is clearly
+skewed by the larger amount of data with lower age values. In general this is a
+very bad fit.
 
 ```{r q6_bptest}
 (q6_bp <- bptest(model1))
@@ -386,7 +397,9 @@ of homoskedasticity.
 ```{r}
 summary(model1)
 ```
-The age explains `r summary(model1)$adj.r.squared` of the price variability.
+
+The age explains `r summary(model1)$adj.r.squared` of the price variability
+according to our model.
 
 
 
