@@ -19,6 +19,18 @@ recode <- dplyr::recode
 some <- purrr::some
 ```
 
+```{r helper_funcs, include=FALSE}
+pval <- function(res) {
+    pval <- res$p.value
+
+    ifelse(pval < 2.2e-16,
+           "less than $2.2\\times10^{-16}$",
+           signif(pval, 2)
+    )
+}
+```
+
+
 # Analysis
 ```{r}
 source("io_checksum.R")
@@ -92,13 +104,13 @@ ggplot(df, aes(price_log)) +
 
 The histogram of the price shows a very right skewed distribution which does not
 seem compatible with a normal fit. Moreover, the Shapiro test returns a small
-*p-value* of `r shap_res$p.value`, which makes us reject the null hypothesis
+*p-value* of `r pval(shap_res)`, which makes us reject the null hypothesis
 of normality.
 
 Additionally, we also checked if the price followed a log normal distribution. If we
 analyse the new histogram we can see that the log transformation corrected the skewness
 and the new distribution seems to resemble a normal bell shape. However the Shapiro test
-returns a similarly low *p-value* of `r log_shap_res$p.value`, which makes us
+returns a *p-value* of `r pval(log_shap_res)`, which makes us
 reject the null hypothesis of normality.
 
 \Cref{fig:q1_qq_plots} shows the QQ plots of `price` and `log*(price)`. We can
@@ -127,7 +139,7 @@ dwtest_res <- dwtest(price ~ 1, data = df)
 
 We perform a Durbin-Watson test with the null hypothesis that the
 autocorrelation of the disturbances is 0. We obtain a *p-value* of
-`r round(dwtest_res$p.value, 2)` so we fail to reject the null hypothesis.
+`r pval(dwtest_res)` so we fail to reject the null hypothesis.
 
 ```{r}
 dwtest_res
@@ -238,14 +250,14 @@ flig_res <- fligner.test(price ~ aux_age, data = df); flig_res
 model <- lm(price ~ aux_age, data = df)
 shapiro.test(residuals(model))
 ```
-The fligner test returns a *p-value* of `r flig_res$p.value` which makes us reject the
+The fligner test returns a *p-value* of `r pval(flig_res)` which makes us reject the
 null hypothesis of homoscedasticity. Additionally, we can't assume normality. For this
 reason we will use the non-parametric Kruskal-Wallis test.
 
 ```{r q3_bp}
 (kruskal_res <- kruskal.test(price ~ aux_age, data = df))
 ```
-The test returns a *p.value* of `r kruskal_res$p.value`. Which is less than
+The test returns a *p.value* of `r pval(kruskal_res)`. Which is less than
 the significance level and thus we reject the NULL hypothesis that the location
 parameters of all the samples are equal. We have statistical proof that
 the average `price` does depend on the `age`. The visual inspection of
@@ -293,8 +305,8 @@ df %>%
 (fligner_int <- fligner.test(price ~ interaction(aux_age, fuelType), data = df))
 ```
 We execute Fligner-Killeen test with each factor and the interaction of both.
-The resulting *p.values* are `r fligner_price$p.value` for the price,
-`r fligner_age$p.value` for the age and `r fligner_int$p.value` combining both.
+The resulting *p.values* are `r pval(fligner_price)` for the price,
+`r pval(fligner_age)` for the age and `r pval(fligner_int)` combining both.
 In the case of `age` and `age:fuelType`, results show that there is clear
 evidence to reject the null hypothesis of equal variances for all groups. The
 results when grouping by `fuelType` are more inconclusive as the *p.value* is
@@ -365,7 +377,7 @@ relevant data is shown in \cref{tab:q6_model,tab:q6_stats}.
 
 In \cref{fig:q6_resid} we can see that the residuals seem to not hold
 homoskedasticity. Performing a Breusch-Pagan Test we see that the _p-value_
-is `r q6_bp$p.value` which is less than 0.05 and thus we reject the NULL hypothesis
+is `r pval(q6_bp)` which is less than 0.05 and thus we reject the NULL hypothesis
 of homoskedasticity.
 
 <!-- 7. --> \pagebreak
@@ -395,7 +407,7 @@ be relevant because when testing if its coefficient is equal to zero we get a re
 small *p.value*.
 
 Moreover, we compare the previous model with the new one which adds the quadratic term
-using ANOVA. The resulting small *p.value* of `r anova$p.value` makes us reject the
+using ANOVA. The resulting small *p.value* of `r pval(anova)` makes us reject the
 null hypothesis of equal means. This implies that the new model significantly improves
 on the previous one.
 
