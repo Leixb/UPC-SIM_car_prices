@@ -1,5 +1,6 @@
 .direnv
 result
+car_prices_files
 
 *.pdf
 *.rds
