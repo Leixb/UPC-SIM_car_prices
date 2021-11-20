@@ -341,7 +341,7 @@ model1 %>%
 ```
 
 ```{r q6_stats}
-lm_tibble(model) %>%
+lm_tibble(model1) %>%
     kable(
         caption = "Linear regression on price $\\sim$ age statistics",
         booktabs = TRUE,
