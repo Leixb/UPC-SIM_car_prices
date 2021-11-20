@@ -389,7 +389,9 @@ very bad fit.
 In \cref{fig:q6_resid} we can see that the residuals seem to not hold
 homoskedasticity. Performing a Breusch-Pagan Test we see that the _p-value_
 is `r pval(q6_bp)` which is less than 0.05 and thus we reject the NULL hypothesis
-of homoskedasticity.
+of homoskedasticity. The results of the test are consistent with what is shown
+in the residuals from \cref{fig:q6_plot} which seem to suggest both
+no-linearity and heteroscedasticity.
 
 <!-- 7. --> \pagebreak
 ## What is the percentage of the price variability that is explained by the age of the car?
@@ -406,7 +408,7 @@ according to our model.
 <!-- 8. --> \pagebreak
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
-```{r, fig.height = 6, fig.width = 8}
+```{r q8, fig.height = 6, fig.width = 8, fig.cap = "Residuals of model with quadratic term" }
 model2 <- lm(price ~ age + I(age^2), df)
 summary(model2)
 
@@ -419,48 +421,99 @@ is an improvement from the previous one. Moreover the quadratic age term seems t
 be relevant because when testing if its coefficient is equal to zero we get a really
 small *p.value*.
 
-Moreover, we compare the previous model with the new one which adds the quadratic term
-using ANOVA. The resulting small *p.value* of `r pval(anova)` makes us reject the
-null hypothesis of equal means. This implies that the new model significantly improves
-on the previous one.
+Additionally, we compared the previous model with the new one which adds the
+quadratic term using ANOVA. The resulting small *p.value* of `r pval(anova)`
+makes us reject the null hypothesis of equal means. This implies that the new
+model significantly improves on the previous one.
+
+```{r q8_bptest}
+(q8_bp <- bptest(model2))
+```
+
+Nevertheless, there is still a clear pattern of heteroscedasticity as seen in
+\cref{fig:q8} and that is statistically proved through the Breusch-Pagan test
+(with _p-value_ < 0.05 we reject the null hypothesis of homoscedasticity).
+
 
 
 
 <!-- 9. --> \pagebreak
 ## Are there any additional explanatory numeric variables needed to the car price? Study collinearity effects.
 
-```{r}
-lm <- lm(price ~ ., data = select(df, where(is.numeric)))
-summary(lm)
+```{r q9_models}
+model_add <- lm(price ~ ., data = select(df, where(is.numeric), -price_log))
+model_add_nomil <- lm(price ~ ., data = select(df, where(is.numeric), -price_log, -mileage))
 
-# Collinearity
-df %>%
-    select(where(is.numeric)) %>%
-    cor(use = "complete.obs") %>%
-    corrplot()
-
-lm_mileage <- lm(mileage ~ . - price, select(df, where(is.numeric)))
-summary(lm_mileage)
-lm_tax <- lm(tax ~ . - price, select(df, where(is.numeric)))
-summary(lm_tax)
-lm_mpg <- lm(mpg ~ . - price, select(df, where(is.numeric)))
-summary(lm_mpg)
-lm_age <- lm(age ~ . - price, select(df, where(is.numeric)))
-summary(lm_age)
+summary(model_add)
 ```
 
+```{=latex }
+\begin{multicols}{2}
+```
+
+```{r q9_vif}
+vif(model_add) %>%
+    kable(
+        caption = "Variance inflation factors",
+        booktabs = TRUE,
+        digits = 2,
+        col.names = c("VIF")
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+```{r q9_vif_nomil}
+vif(model_add_nomil) %>%
+    kable(
+        caption = "Variance inflation factors (without mileage)",
+        booktabs = TRUE,
+        digits = 2,
+        col.names = c("VIF")
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+```{=latex }
+\end{multicols}
+```
+
+Performing a variance inflation factor analysis, we see that both `age` and
+`mileage` have high values, if we examine their correlation, we can see that it
+seems to be a linear correlation between the two, as shown in \cref{fig:q9_am}.
+Additionally, `mileage` has the biggest _p-value_ in our model. Given these two
+facts, consider not using `mileage` in the model.
+
+```{r q9_am, fig.cap = "Colinearity between age and mileage"}
+df %>%
+    ggplot(aes(age, mileage)) +
+    geom_boxplot(aes(as_factor(age))) +
+    geom_smooth(method = "lm", formula = "y ~ x")
+```
+
+The new model without `mileage` has almost the same `R-squared` value and the
+results of the `VIF` analysis are much more reasonable.
+There seems to be a small correlation between `tax` and `mpg`, but it is not
+significantly relevant as shown by the small `VIF` values.
+
+```{r q9_nomil}
+summary(model_add_nomil)
+```
 
 <!-- 10. --> \pagebreak
 ## After controlling by numerical variables, indicate whether the additive effect of the available factors on the price are statistically significant.
 
-```{r}
-log_model <- lm(price ~ ., data = select(df, -price_log & where(is.numeric)))
-log_model
-```
+<!-- TODO -->
 
 
 <!-- 11. --> \pagebreak
 ## Select the best model available so far. Interpret the equations that relate the explanatory variables to the answer (rate).
+
+```{r}
+model_so_far <- lm(price ~ . + I(age^2), data = select(df, where(is.numeric), -price_log, -mileage))
+summary(model_so_far)
+
+model_so_far$coefficients[2]
+```
 
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
