@@ -13,6 +13,10 @@ library(lmtest)
 library(xtable)
 library(ggfortify)
 library(MASS)
+
+select <- dplyr::select
+recode <- dplyr::recode
+some <- purrr::some
 ```
 
 # Analysis
