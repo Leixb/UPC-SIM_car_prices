@@ -44,8 +44,6 @@ df <- read_rds_w_checksum("./data/dataset.rds")
 
 ```{r q1_price_hist, echo = FALSE, fig.height = 3}
 
-df <- df %>% mutate(price_log = log(price))
-
 price_mean <- mean(df$price)
 price_sd <- sd(df$price)
 
@@ -73,10 +71,10 @@ ggplot(df, aes(price)) +
 
 ```{r q1_price_log_hist, echo = FALSE, fig.height = 3}
 
-price_log_mean <- mean(df$price_log)
-price_log_sd <- sd(df$price_log)
+price_log_mean <- mean(log(df$price))
+price_log_sd <- sd(log(df$price))
 
-ggplot(df, aes(price_log)) +
+ggplot(df, aes(log(price))) +
     geom_histogram(aes(y = ..density..), bins = 30) +
     stat_function(
         fun = dnorm,
@@ -100,7 +98,7 @@ ggplot(df, aes(price_log)) +
 
 ```{r q1_shapiro}
 (shap_res <- shapiro.test(df$price))
-(log_shap_res <- shapiro.test(df$price_log))
+(log_shap_res <- shapiro.test(log(df$price)))
 ```
 
 The histogram of the price shows a very right skewed distribution which does not
@@ -182,7 +180,7 @@ specific values of the correlation matrix are shown in \cref{tab:q2_corr}.
 
 ```{r q2_corrplot, fig.cap = "Spearman correlation plot", fig.height = 2.5}
 cor_mat <- df %>%
-    select(where(is.numeric), -price_log) %>%
+    select(where(is.numeric)) %>%
     cor(use = "complete.obs", method = "spearman")
 
 cor_mat %>% corrplot()
@@ -441,8 +439,8 @@ Nevertheless, there is still a clear pattern of heteroscedasticity as seen in
 ## Are there any additional explanatory numeric variables needed to the car price? Study collinearity effects.
 
 ```{r q9_models}
-model_add <- lm(price ~ ., data = select(df, where(is.numeric), -price_log))
-model_add_nomil <- lm(price ~ ., data = select(df, where(is.numeric), -price_log, -mileage))
+model_add <- lm(price ~ ., data = select(df, where(is.numeric)))
+model_add_nomil <- lm(price ~ ., data = select(df, where(is.numeric), -mileage))
 
 summary(model_add)
 ```
@@ -529,7 +527,7 @@ So far, the best model obtained so far is the one which includes all the
 numerical variables and the quadratic factor on `age`.
 
 ```{r}
-model_so_far <- lm(price ~ . + I(age^2), data = select(df, where(is.numeric), -price_log))
+model_so_far <- lm(price ~ . + I(age^2), data = select(df, where(is.numeric)))
 model_so_far$coefficients %>%
     kable(
         caption = "Model coefficients",
@@ -564,7 +562,7 @@ infinity.
 ## Study the model that relates the logarithm of the price to the numerical variables.
 
 ```{r, fig.height = 6, fig.width = 8}
-log_model <- lm(price_log ~ . + I(age^2), data = select(df, where(is.numeric), -price))
+log_model <- lm(log(price) ~ . + I(age^2), data = select(df, where(is.numeric)))
 (sum_log <- summary(log_model))
 autoplot(log_model, ncol = 2)
 ```
@@ -575,8 +573,8 @@ With the logarithm of the price, we obtain a higher value of `r glue("$R^2={sign
 ## Once explanatory numerical variables are included in the model, are there any main effects from factors needed?
 
 ```{r}
-m5_model <- lm(price_log ~ ., data = select(df, -price, -year, -starts_with("aux_")))
-m5 <- lm(price_log ~ ., data = select(df, -price, -year, -model, -starts_with("aux_")))
+m5_model <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_")))
+m5 <- lm(log(price) ~ ., data = select(df, -year, -model, -starts_with("aux_")))
 anova(m5, test = "Chisq")
 summary(m5)
 ```
@@ -592,14 +590,14 @@ with most factors.
 ## Graphically assess the best model obtained so far.
 
 ```{r}
-dd <- df %>% select(-price, -year, -starts_with("aux_"))
-model_bc <- lm(price_log ~ . + I(age^2) + boxCoxVariable(price_log), data = dd)
+dd <- df %>% select(-year, -starts_with("aux_"))
+model_bc <- lm(log(price) ~ . + I(age^2) + boxCoxVariable(log(price)), data = dd)
 
 bc <- boxcox(model_bc)
 (lambda <- bc$x[which.max(bc$y)])
-new_model <- lm(((price_log^lambda - 1) / lambda) ~ . + boxCoxVariable((price_log^lambda - 1) / lambda), data = dd)
+new_model <- lm(((log(price)^lambda - 1) / lambda) ~ . + boxCoxVariable((log(price)^lambda - 1) / lambda), data = dd)
 
-model_bc <- lm(price_log ~ . + I(age^2) + boxCoxVariable(price_log), data = dd)
+model_bc <- lm(log(price) ~ . + I(age^2) + boxCoxVariable(log(price)), data = dd)
 
 best_model <- model_bc
 
@@ -632,7 +630,7 @@ df %>%
 
 ```{r}
 # library(mvoutlier)
-# df %>% select(where(is.numeric), -price_log, -tax) %>% aq.plot()
+# df %>% select(where(is.numeric), -tax) %>% aq.plot()
 
 df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid)
 ```
@@ -696,12 +694,9 @@ influential %>%
 ```
 
 ```{r}
-df %>% slice(ids_dfbetas)
-df %>% slice(ids_dffit)
-
 df %>%
     rowid_to_column() %>%
-    select(-starts_with("aux_"), -c(manufacturer, price_log, stud_resids, stud_outlier)) %>%
+    select(-starts_with("aux_"), -c(manufacturer, stud_resids, stud_outlier)) %>%
     slice(ids_combined) %>%
     arrange(rowid) %>%
     kable(
