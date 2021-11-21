@@ -257,7 +257,7 @@ model <- lm(price ~ aux_age, data = df)
 shapiro.test(residuals(model))
 ```
 The fligner test returns a *p-value* of `r pval(flig_res)` which makes us reject the
-null hypothesis of homoscedasticity. Additionally, we can't assume normality. For this
+null hypothesis of homogeneity of variance. Additionally, we can't assume normality. For this
 reason we will use the non-parametric Kruskal-Wallis test.
 
 ```{r q3_bp}
