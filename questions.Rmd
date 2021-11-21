@@ -630,8 +630,21 @@ df %>%
 <!-- 16. --> \pagebreak
 ## Study the presence of a priori influential data observations, indicating their number according to the criteria studied in class.
 
+```{r}
+library(mvoutlier)
+df %>% select(where(is.numeric), -price_log, -tax) %>% aq.plot()
+
+df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid)
+```
+
+
 <!-- 17. --> \pagebreak
 ## Study the presence of a posteriori influential values, indicating the criteria studied in class and the actual atypical observations.
+
+```{r}
+matplot(dfbetas(best_model), type = "l")
+```
+
 
 <!-- 18. --> \pagebreak
 ## Given a 5-year-old car, the rest of numerical variables on the mean and factors on the reference level, what would be the expected price at 95% confidence interval?
