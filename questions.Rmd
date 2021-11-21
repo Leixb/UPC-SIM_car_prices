@@ -357,7 +357,7 @@ lm_tibble(model1) %>%
 
 ```
 
-```{r q6_plot, fig.height = 4, fig.width=6, fig.cap = "Linear model price ~ age"}
+```{r q6_plot, fig.height = 4, fig.width=6, fig.cap = "Linear model price $\\sim$ age"}
 df %>%
     ggplot(aes(age, price)) +
     geom_boxplot(aes(group = age)) +
