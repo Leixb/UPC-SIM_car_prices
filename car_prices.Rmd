@@ -1,5 +1,6 @@
 ---
 title: "Car prices"
+subtitle: "SIM project"
 author:
     - Aleix Boné
     - David Gili
@@ -10,8 +11,17 @@ output:
         fig_caption: true
         number_sections: true
         dev: cairo_pdf
+        includes:
+            in_header: preamble.tex
         extra_dependencies: [ "float", "cleveref" , "multicol"]
         keep_tex: true
+        pandoc_args: "--pdf-engine-opt=-shell-escape"
+    html_document:
+        toc: true
+        toc_float:
+            collapsed: false
+            smooth_scroll: true
+urlcolor: blue
 ---
 
 ```{r include = FALSE}
@@ -47,6 +57,27 @@ output_hook <- function(x, options) {
     paste("\\begin{shaded}", "\\begin{verbatim}", x, "\\end{verbatim}", "\\end{shaded}", sep = "\n")
 }
 knit_hooks$set(output = output_hook)
+```
+
+\thispagestyle{empty}
+\setcounter{page}{0}
+\null
+\vspace{5em}
+\tableofcontents
+\pagebreak
+
+```{r configure_minted, include = FALSE}
+if (knitr::is_latex_output()) {
+    if (Sys.which("pygmentize") != "") {
+        minted_hook <- function(x, options) {
+            x <- paste0(x, collapse = "\n")
+            paste("\\begin{minted}{R}", x, "\\end{minted}", sep = "\n")
+        }
+        usepackage_latex("minted")
+        knit_hooks$set(source = minted_hook)
+        options(tinytex.engine_args = "-shell-escape")
+    }
+}
 ```
 
 ```{r child = 'data_preparation.Rmd'}
