@@ -589,8 +589,7 @@ The residuals of the model are shown in \cref{fig:q12_log_plot}.
 ```{r}
 m5_model <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_")))
 m5 <- lm(log(price) ~ ., data = select(df, -year, -model, -starts_with("aux_")))
-anova(m5, test = "Chisq")
-summary(m5)
+anova(m5_model, test = "Chisq")
 ```
 
 If we add all factor variables to the model (except auxiliary ones), we obtain a

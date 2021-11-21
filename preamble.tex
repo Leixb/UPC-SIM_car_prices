@@ -4,6 +4,9 @@
     % replace maketitle with custom titlepage
     \renewcommand{\maketitle}{\input{titlepage}} % chktex 27
 
+    \BeforeBeginEnvironment{shaded}{\begin{minipage}{\linewidth}}
+    \AfterEndEnvironment{shaded}{\end{minipage}\par}
+
     \definecolor{shadecolor}{HTML}{EBEBEB}
     \@ifpackageloaded{minted}{%
         \definecolor{codeBg}{HTML}{FFFDE7}%
