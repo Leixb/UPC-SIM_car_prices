@@ -566,7 +566,7 @@ infinity.
 dd <- df %>% select(-year, -starts_with("aux_"))
 model_bc <- lm(price ~ . + I(age^2), data = dd)
 bc <- boxcox(model_bc)
-(lambda <- bc$x[which.max(bc$y)])
+lambda <- bc$x[which.max(bc$y)]
 ```
 
 If we compute the \ensuremath{\lambda} value of the boxcox transformation as
