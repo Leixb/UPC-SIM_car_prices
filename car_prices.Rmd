@@ -13,7 +13,12 @@ output:
         dev: cairo_pdf
         includes:
             in_header: preamble.tex
-        extra_dependencies: [ "float", "cleveref" , "multicol", "etoolbox"]
+        extra_dependencies:
+            float:
+            cleveref:
+            multicol:
+            etoolbox:
+            footmisc: "bottom"
         keep_tex: true
         pandoc_args: "--pdf-engine-opt=-shell-escape"
     html_document:
