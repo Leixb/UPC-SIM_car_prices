@@ -12,6 +12,7 @@ library(FactoMineR)
 library(lmtest)
 library(xtable)
 library(ggfortify)
+library(ggrepel)
 library(MASS)
 
 select <- dplyr::select
@@ -165,8 +166,7 @@ conf_inter <- acf_ci(acf_res, 0.05)
 ggplot(data = acf_res_df, mapping = aes(x = lag, y = acf)) +
     geom_hline(aes(yintercept = 0)) +
     geom_segment(mapping = aes(xend = lag, yend = 0)) +
-    geom_hline(aes(yintercept = conf_inter), linetype = "dashed", color = "blue") +
-    geom_hline(aes(yintercept = -conf_inter), linetype = "dashed", color = "blue") +
+    geom_hline(yintercept = c(conf_inter, -conf_inter), linetype = "dashed", color = "blue") +
     labs(x = "Lag", y = "ACF")
 ```
 
@@ -631,8 +631,8 @@ df %>%
 ## Study the presence of a priori influential data observations, indicating their number according to the criteria studied in class.
 
 ```{r}
-library(mvoutlier)
-df %>% select(where(is.numeric), -price_log, -tax) %>% aq.plot()
+# library(mvoutlier)
+# df %>% select(where(is.numeric), -price_log, -tax) %>% aq.plot()
 
 df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid)
 ```
@@ -642,7 +642,74 @@ df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid)
 ## Study the presence of a posteriori influential values, indicating the criteria studied in class and the actual atypical observations.
 
 ```{r}
-matplot(dfbetas(best_model), type = "l")
+col_num <- df %>% select(where(is.numeric)) %>% colnames()
+
+dfb <- dfbetas(best_model) %>%
+    as.data.frame() %>%
+    select(any_of(col_num)) %>%
+    rename_with(~ paste0("dfbetas_", .))
+
+cook_dffit <- tibble(
+        dffit = dffits(best_model),
+        cooks.distance = cooks.distance(best_model)
+    )
+
+influential <- cbind(dfb, cook_dffit) %>%
+    tibble() %>%
+    rowid_to_column("observation")
+
+ids_dfbetas <- influential %>%
+    filter(if_any(c(-observation, -dffit), ~ abs(.) > 0.5)) %>%
+    pull(observation)
+
+ids_dffit <- influential %>%
+    filter(if_any(dffit, ~ abs(.) > 1.0)) %>%
+    pull(observation)
+
+ids_combined <- union(ids_dfbetas, ids_dffit)
+
+```
+
+```{r dfbetas_plot, fig.cap = "Influential data with DFBETAS", fig.width = 8, fig.height = 6}
+influential %>%
+    select(-dffit) %>%
+    pivot_longer(-observation) %>%
+    mutate(label = ifelse(abs(value) > 0.5, observation, "")) %>%
+    ggplot(aes(observation, value, color = name)) +
+    geom_line() +
+    geom_hline(yintercept = 0) +
+    geom_hline(yintercept = c(0.5, -0.5), linetype = "dotted") +
+    geom_hline(yintercept = c(1, -1), linetype = "dashed") +
+    geom_label_repel(aes(label = label)) +
+    labs(color = "Metric")
+```
+
+```{r diffit_plot, fig.cap = "Influential data with DFFIT", fig.width = 8, fig.height = 6}
+influential %>%
+    mutate(label = ifelse(abs(dffit) > 1.0, observation, "")) %>%
+    ggplot(aes(observation, dffit)) +
+    geom_segment(aes(xend = observation, yend = 0)) +
+    geom_hline(yintercept = c(0.5, -0.5), linetype = "dotted", color = "blue") +
+    geom_hline(yintercept = c(1, -1), linetype = "dashed", color = "blue") +
+    geom_label_repel(aes(label = label)) +
+    labs(y = "DFFIT")
+```
+
+```{r}
+df %>% slice(ids_dfbetas)
+df %>% slice(ids_dffit)
+
+df %>%
+    rowid_to_column() %>%
+    select(-starts_with("aux_")) %>%
+    slice(ids_combined) %>%
+    arrange(rowid) %>%
+    kable(
+        caption = "Influential data",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
 ```
 
 
