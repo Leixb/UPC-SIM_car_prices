@@ -716,5 +716,35 @@ df %>%
 <!-- 18. --> \pagebreak
 ## Given a 5-year-old car, the rest of numerical variables on the mean and factors on the reference level, what would be the expected price at 95% confidence interval?
 
+```{r q8_car_data}
+df_mean <- df %>%
+    summarise(across(c(where(is.numeric), -stud_resids, -age), mean))
+
+car_5y <- df %>%
+    slice(1) %>%
+    select(where(is.factor), -year, -starts_with("aux_")) %>%
+    bind_cols(df_mean) %>%
+    add_column(age = 5)
+
+car_5y %>%
+    select(-price) %>%
+    kable(
+        caption = "5 year old car with mean numerical variables and reference level on factors",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
+
+(predicted <- best_model %>%
+    predict(newdata = car_5y, interval = "confidence", level = 0.95) %>%
+    exp() %>%
+    round(2) %>%
+    as.data.frame())
+```
+
+For the data shown in \cref{tab:q8_car_data} we obtain an expected `price`
+of `r glue("{predicted$fit}")` with a 95% confidence interval
+of `r glue("({predicted$lwr}, {predicted$upr})")`.
+
 <!-- 19. --> \pagebreak
 ## Summarize what you have learned by working with this interesting real dataset.
