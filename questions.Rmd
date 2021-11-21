@@ -701,7 +701,7 @@ df %>% slice(ids_dffit)
 
 df %>%
     rowid_to_column() %>%
-    select(-starts_with("aux_")) %>%
+    select(-starts_with("aux_"), -c(manufacturer, price_log, stud_resids, stud_outlier)) %>%
     slice(ids_combined) %>%
     arrange(rowid) %>%
     kable(
