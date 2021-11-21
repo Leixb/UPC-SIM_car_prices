@@ -825,3 +825,22 @@ of `r glue("({predicted$lwr}, {predicted$upr})")`.
 
 <!-- 19. --> \pagebreak
 ## Summarize what you have learned by working with this interesting real dataset.
+
+We first realized that the price did not follow a normal distribution, because there are several luxury cars
+with high prices. This impacted the modeling phase, as linear models without any transformation to the
+price obtained much worse results than when applying a logarithmic transformation.
+
+In general, we also learn that different groups of the same factors had significantly different price means and
+variances. Moreover, we also found some errors like non-electric cars with engine size equal to zero and
+some instances with many severe outliers. When searching the models that were outliers, we realized that
+they were indeed quite peculiar cars. We also showed that when we removed these rows from the analysis,
+the quality of our models increased.
+
+All variables seem to be important to predict the price except the tax and mileage. The mileage is useful
+by its own but its correlation with age makes it redundant. Tax has a high concentration of values and
+therefore lacks much discriminatory value. We were also rather surprised, when we found out that our best
+model could explain such high variance of the price with the limited number of features available.
+
+We were also surprised by the behaviour of price and age. As expected, the price tended to decrease rapidly
+in the first years and then quickly flat-lined. Nevertheless, we assumed that at some point as cars become
+vintage the price would slightly increase. However our data does not seem to present this pattern.
