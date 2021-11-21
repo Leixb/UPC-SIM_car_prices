@@ -47,6 +47,7 @@ knitr::opts_chunk$set(
     echo = FALSE,
     collapse = FALSE,
     comment = "#>",
+    warning = FALSE,
     fig.retina = 2, # Control using dpi
     fig.width = 5, # generated images
     fig.height = 3, # generated images
