@@ -409,7 +409,7 @@ according to our model.
 ## Do you think it is necessary to introduce a quadratic term in the equation that relates the price to its age?
 
 ```{r q8, fig.height = 6, fig.width = 8, fig.cap = "Residuals of model with quadratic term" }
-model2 <- lm(price ~ age + I(age^2), df)
+model2 <- lm(price ~ poly(age, 2), df)
 summary(model2)
 
 (anova <- anova(model1, model2))
@@ -502,43 +502,108 @@ summary(model_add_nomil)
 <!-- 10. --> \pagebreak
 ## After controlling by numerical variables, indicate whether the additive effect of the available factors on the price are statistically significant.
 
-<!-- TODO -->
+```{r}
+m0 <- lm(price ~ poly(age, 2) + tax + mpg + mileage, data = df)
+m1 <- lm(price ~ poly(age, 2) + tax + mpg + mileage + model, data = df)
+m2 <- lm(price ~ poly(age, 2) + tax + mpg + mileage + manufacturer, data = df)
+m3 <- lm(price ~ poly(age, 2) + tax + mpg + mileage + transmission, data = df)
+m4 <- lm(price ~ poly(age, 2) + tax + mpg + mileage + fuelType, data = df)
+m5 <- lm(price ~ poly(age, 2) + tax + mpg + mileage + engineSize, data = df)
 
+anova(m0, m1)
+anova(m0, m2)
+anova(m0, m3)
+anova(m0, m4)
+anova(m0, m5)
+```
+
+Performing an analysis of covariance between the model and all the available
+factors, we obtain that the additive effect of each of them on the `price` is
+statistically significant (_p-value_ is less than `r "$2.2\\times10^{-16}$"` in
+all the cases).
 
 <!-- 11. --> \pagebreak
 ## Select the best model available so far. Interpret the equations that relate the explanatory variables to the answer (rate).
 
-```{r}
-model_so_far <- lm(price ~ . + I(age^2), data = select(df, where(is.numeric), -price_log, -mileage))
-summary(model_so_far)
+So far, the best model obtained so far is the one which includes all the
+numerical variables and the quadratic factor on `age`.
 
-model_so_far$coefficients[2]
+```{r}
+model_so_far <- lm(price ~ . + I(age^2), data = select(df, where(is.numeric), -price_log))
+model_so_far$coefficients %>%
+    kable(
+        caption = "Model coefficients",
+        booktabs = TRUE,
+        digits = 2,
+        col.names = c("Coefficient")
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
 ```
+
+The Intercept shows us that the expected initial value for a new car is
+around 32000 pounds. For every mile the price drops
+by `r abs(model_so_far$coefficients[2])`. For each pound of the tax, the value
+increases by `r abs(model_so_far$coefficients[3])`. Contrary to what one
+might think, miles per gallon (`mpg`) has a negative effect on the price of the
+car, this may be caused by the extreme outliers in the `mpg` variable which are
+the _BMW - i3_, a very expensive car with hybrid technology that uses petrol
+to charge the electric batteries and extend its range.
+
+The price of the car drops by `r abs(model_so_far$coefficients[4])` for each
+year of age. Note that with this slope, at around 10 years, the `price` would
+be negative, this is compensated by the `r "$age^2$"` factor. However, this
+means that the model does not translate well to cars much older than the ones
+in our sample, since the `r "$age^2$"` increases more rapidly than `age` meaning
+that there is a point where the car price starts to increase the older it gets.
+This may be valid in some cases with vintage cars, but in general common sense
+dictates that it should approach a base value close to 0 as `age` tends to
+infinity.
+
 
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
 
 ```{r, fig.height = 6, fig.width = 8}
-log_model <- lm(price_log ~ ., data = select(df, -price & where(is.numeric)))
-summary(log_model)
+log_model <- lm(price_log ~ . + I(age^2), data = select(df, where(is.numeric), -price))
+(sum_log <- summary(log_model))
 autoplot(log_model, ncol = 2)
 ```
 
+With the logarithm of the price, we obtain a higher value of `r glue("$R^2={signif(sum_log$adj.r.squared, 6)}$")`.
 
 <!-- 13. --> \pagebreak
 ## Once explanatory numerical variables are included in the model, are there any main effects from factors needed?
 
 ```{r}
-m5 <- lm(price_log ~ ., data = select(df, -price))
-anova(m5)
+m5_model <- lm(price_log ~ ., data = select(df, -price, -year, -starts_with("aux_")))
+m5 <- lm(price_log ~ ., data = select(df, -price, -year, -model, -starts_with("aux_")))
+anova(m5, test = "Chisq")
+summary(m5)
 ```
 
+If we add all factor variables to the model (except auxiliary ones), we obtain a
+model which explains `r summary(m5_model)$r.squared` of the variability. The
+factor variable `model` has great influence, if we remove it our model
+covers `r summary(m5)$r.squared`. This makes sense, given that we expect cars
+from the same model to have similar prices, also `model` is by far the category
+with most factors.
 
 <!-- 14. --> \pagebreak
 ## Graphically assess the best model obtained so far.
 
 ```{r}
-best_model <- m5
+dd <- df %>% select(-price, -year, -starts_with("aux_"))
+model_bc <- lm(price_log ~ . + I(age^2) + boxCoxVariable(price_log), data = dd)
+
+bc <- boxcox(model_bc)
+(lambda <- bc$x[which.max(bc$y)])
+new_model <- lm(((price_log^lambda - 1) / lambda) ~ . + boxCoxVariable((price_log^lambda - 1) / lambda), data = dd)
+
+model_bc <- lm(price_log ~ . + I(age^2) + boxCoxVariable(price_log), data = dd)
+
+best_model <- model_bc
+
+autoplot(best_model)
 ```
 
 
@@ -569,7 +634,7 @@ df %>%
 ## Study the presence of a posteriori influential values, indicating the criteria studied in class and the actual atypical observations.
 
 <!-- 18. --> \pagebreak
-## Given a 5-year-old car, the rest of numerical variables on the mean and factors on the reference
+## Given a 5-year-old car, the rest of numerical variables on the mean and factors on the reference level, what would be the expected price at 95% confidence interval?
 
 <!-- 19. --> \pagebreak
 ## Summarize what you have learned by working with this interesting real dataset.
