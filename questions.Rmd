@@ -659,17 +659,35 @@ autoplot(best_model, which = c(1, 2, 3, 6))
 <!-- 15. --> \pagebreak
 ## Assess the presence of outliers in the studentized residuals at a 99% confidence level. Indicate what those observations are.
 
-```{r, fig.height = 5, fig.width = 8, fib.cap = "Studentized residuals outliers", warning = FALSE}
+```{r q15_plot, fig.height = 5, fig.width = 8, fig.cap = "Studentized residuals outliers", warning = FALSE}
 df %>%
     add_column(stud_resids = studres(best_model)) %>%
     mutate(stud_outlier = is_severe_outlier(stud_resids)) %>%
     rownames_to_column("observation") %>%
     mutate(label = ifelse(stud_outlier, observation, "")) %>%
-    ggplot(aes(age, stud_resids, color = stud_outlier)) +
+    ggplot(aes(price, stud_resids, color = stud_outlier)) +
     geom_jitter() +
     geom_label_repel(aes(label = label)) +
     geom_hline(yintercept = 0, color = "black") +
     labs(y = "Studentized residuals", color = "Outlier")
+```
+
+\Cref{fig:q15_plot} shows the studentized residuals with the severe outliers
+labeled. The data corresponds to values shown in \cref{tab:q15_data}.
+
+```{r q15_data, warning = FALSE}
+df %>%
+    rowid_to_column() %>%
+    add_column(stud_resids = studres(best_model)) %>%
+    drop_na() %>%
+    filter(is_severe_outlier(stud_resids)) %>%
+    select(-starts_with("aux_"), -manufacturer) %>%
+    kable(
+        caption = "Outliers from studentized residuals",
+        booktabs = TRUE,
+        digits = 2
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
 ```
 
 
@@ -811,7 +829,7 @@ car_5y %>%
     kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
 ```
 
-```{r q18_car_data_pred}
+```{r q18_car_data_pred, warning = FALSE}
 (predicted <- best_model_noinf %>%
     predict(newdata = car_5y, interval = "confidence", level = 0.95) %>%
     exp() %>%
