@@ -3,6 +3,8 @@ result
 car_prices_files
 
 *.pdf
+!figures/logo-upc-fib.pdf
+
 *.rds
 _libs
 *.tex

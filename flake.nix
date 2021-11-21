@@ -65,6 +65,7 @@
               upquote
               catchfile
               xstring
+              footmisc
               ;
           })
           pandoc
