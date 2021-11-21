@@ -719,7 +719,11 @@ ids_combined <- union(ids_dfbetas, ids_dffit)
 id_nopriori <- setdiff(ids_combined, id_apriori)
 ```
 
-```{r dfbetas_plot, fig.cap = "Influential data with DFBETAS", fig.width = 8, fig.height = 6}
+\Cref{fig:dfbetas_plot} shows the plot of the influential data using `DFBETAS`
+for the different numerical variables as well as cooks distance. Since we have a
+big sample of 5000 observations, we used the cutoff at 0.5.
+
+```{r dfbetas_plot, fig.cap = "Influential data with DFBETAS", fig.width = 8, fig.height = 6, warning = FALSE}
 influential %>%
     select(-dffit) %>%
     pivot_longer(-observation) %>%
@@ -733,7 +737,12 @@ influential %>%
     labs(color = "Metric")
 ```
 
-```{r diffit_plot, fig.cap = "Influential data with DFFIT", fig.width = 8, fig.height = 6}
+The plot in \cref{fig:diffit_plot} shows the `DFFIT` metric for the different
+observations in the dataset. The labels shown correspond to the values above 1.
+We can see that most of the influential values found using `DFBETAS` are also influential
+using `DFFIT`.
+
+```{r diffit_plot, fig.cap = "Influential data with DFFIT", fig.width = 8, fig.height = 6, warning = FALSE}
 influential %>%
     mutate(label = ifelse(abs(dffit) > 1.0, observation, "")) %>%
     ggplot(aes(observation, dffit)) +
@@ -763,7 +772,8 @@ df %>%
 
 In \cref{tab:q17_outliers} we show all the influential data labelled with either
 `DFFIT` or `DFBETAS`. The column `Moutlier` shows the variables which where
-labelled as multivariate outliers _a priori_.
+labelled as multivariate outliers _a priori_. In more than half the cases the
+influential data was not a multivariate outlier we detected _a priori_.
 
 
 <!-- 18. --> \pagebreak
