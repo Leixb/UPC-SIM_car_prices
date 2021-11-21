@@ -14,6 +14,7 @@ library(xtable)
 library(ggfortify)
 library(ggrepel)
 library(MASS)
+library(mvoutlier)
 
 select <- dplyr::select
 recode <- dplyr::recode
@@ -561,13 +562,26 @@ infinity.
 <!-- 12. --> \pagebreak
 ## Study the model that relates the logarithm of the price to the numerical variables.
 
-```{r, fig.height = 6, fig.width = 8}
+```{r q12_boxcox, fig.cap = "log-Likelihood plot"}
+dd <- df %>% select(-year, -starts_with("aux_"))
+model_bc <- lm(price ~ . + I(age^2), data = dd)
+bc <- boxcox(model_bc)
+(lambda <- bc$x[which.max(bc$y)])
+```
+
+If we compute the \ensuremath{\lambda} value of the boxcox transformation as
+shown in \cref{fig:q12_boxcox}, we obtain a value of lambda of `r lambda`. The
+graphic shows that 0 is inside our confidence interval, indicating that a
+log transformation of the data is needed.
+
+```{r q12_log_plot, fig.height = 6, fig.width = 8, fig.cap = "Model residuals"}
 log_model <- lm(log(price) ~ . + I(age^2), data = select(df, where(is.numeric)))
 (sum_log <- summary(log_model))
 autoplot(log_model, ncol = 2)
 ```
 
 With the logarithm of the price, we obtain a higher value of `r glue("$R^2={signif(sum_log$adj.r.squared, 6)}$")`.
+The residuals of the model are shown in \cref{fig:q12_log_plot}.
 
 <!-- 13. --> \pagebreak
 ## Once explanatory numerical variables are included in the model, are there any main effects from factors needed?
@@ -589,50 +603,86 @@ with most factors.
 <!-- 14. --> \pagebreak
 ## Graphically assess the best model obtained so far.
 
+The best model obtained so far is the one using the log transformation on price
+and all the numerical variables and factors.
+
 ```{r}
-dd <- df %>% select(-year, -starts_with("aux_"))
-model_bc <- lm(log(price) ~ . + I(age^2) + boxCoxVariable(log(price)), data = dd)
+best_model <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_")))
+best_model_nomil <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_"), -mileage))
+best_model_notax <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_"), -tax))
+best_model_nomil_notax <- lm(log(price) ~ ., data = select(df, -year, -starts_with("aux_"), -mileage, -tax))
 
-bc <- boxcox(model_bc)
-(lambda <- bc$x[which.max(bc$y)])
-new_model <- lm(((log(price)^lambda - 1) / lambda) ~ . + boxCoxVariable((log(price)^lambda - 1) / lambda), data = dd)
+s_bm <- summary(best_model)
+s_bm_nomil <- summary(best_model_nomil)
+s_bm_notax <- summary(best_model_notax)
+s_bm_nomil_notax <- summary(best_model_nomil_notax)
 
-model_bc <- lm(log(price) ~ . + I(age^2) + boxCoxVariable(log(price)), data = dd)
-
-best_model <- model_bc
-
-autoplot(best_model)
+bic <- BIC(best_model)
+bic_nomil <- BIC(best_model_nomil)
+bic_notax <- BIC(best_model_notax)
+bic_nomil_notax <- BIC(best_model_nomil_notax)
 ```
 
+Given what we found on about the
+collinearity of `mileage` and `age` we consider the model without including
+`mileage`. Also we found that the significance level of the numeric variable
+`tax` is not statistically significant when all the factors are added. We
+evaluated the \ensuremath{R^2} and `BIC` of the model, the model without
+`mileage`, without `tax` and without `mileage` or `tax`. The results are shown
+in \cref{tab:q14_models}. The best model is the original one with
+both `tax` and `mileage` (has higher \ensuremath{R^2} and lower `BIC`).
+
+```{r q14_models}
+tribble(
+        ~model, ~R2, ~BIC,
+        "base", s_bm$adj.r.squared, bic,
+        "-mileage", s_bm_nomil$adj.r.squared, bic_nomil,
+        "-tax", s_bm_notax$adj.r.squared, bic_notax,
+        "-mileage, -tax", s_bm_nomil_notax$adj.r.squared, bic_nomil_notax
+) %>%
+    kable(
+        caption = "R2 and BIC for log(price) model variations",
+        booktabs = TRUE,
+        digits = 4
+    ) %>%
+    kable_styling(latex_options = c("HOLD_position"), full_width = FALSE)
+```
+
+\Cref{fig:q14_plot} shows the residuals of the best model obtained so far. We
+can see that there are no clear patterns on the residuals. There are still some
+residuals which are clearly outliers and the distribution of residuals in the
+`qqplot` is highly tailed.
+
+```{r q14_plot, fig.height = 6, fig.width = 8, fig.cap = "Residuals of log(price) model", warning = FALSE}
+autoplot(best_model, which = c(1, 2, 3, 6))
+```
 
 <!-- 15. --> \pagebreak
 ## Assess the presence of outliers in the studentized residuals at a 99% confidence level. Indicate what those observations are.
 
-```{r}
-stud_resids <- studres(best_model)
-
-plot(df$age, stud_resids)
-abline(0, 0)
-
-df <- df %>%
-    add_column(stud_resids = studres(best_model)) %>%
-    mutate(stud_outlier = is_severe_outlier(stud_resids))
-
+```{r, fig.height = 5, fig.width = 8, fib.cap = "Studentized residuals outliers", warning = FALSE}
 df %>%
+    add_column(stud_resids = studres(best_model)) %>%
+    mutate(stud_outlier = is_severe_outlier(stud_resids)) %>%
+    rownames_to_column("observation") %>%
+    mutate(label = ifelse(stud_outlier, observation, "")) %>%
     ggplot(aes(age, stud_resids, color = stud_outlier)) +
     geom_jitter() +
-    geom_hline(yintercept = 0, color = "red")
+    geom_label_repel(aes(label = label)) +
+    geom_hline(yintercept = 0, color = "black") +
+    labs(y = "Studentized residuals", color = "Outlier")
 ```
 
 
 <!-- 16. --> \pagebreak
 ## Study the presence of a priori influential data observations, indicating their number according to the criteria studied in class.
 
-```{r}
-# library(mvoutlier)
-# df %>% select(where(is.numeric), -tax) %>% aq.plot()
+In the initial analysis of the data, we identified `r nrow(df_outliers)`
+multivariate outliers using Mahalanobis distance. The list of all the indices is
+shown below:
 
-df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid)
+```{r}
+(id_apriori <- df_outliers %>% rowid_to_column() %>% filter(moutlier) %>% pull(rowid))
 ```
 
 
@@ -666,6 +716,7 @@ ids_dffit <- influential %>%
 
 ids_combined <- union(ids_dfbetas, ids_dffit)
 
+id_nopriori <- setdiff(ids_combined, id_apriori)
 ```
 
 ```{r dfbetas_plot, fig.cap = "Influential data with DFBETAS", fig.width = 8, fig.height = 6}
@@ -693,34 +744,54 @@ influential %>%
     labs(y = "DFFIT")
 ```
 
-```{r}
+```{r q17_outliers}
 df %>%
     rowid_to_column() %>%
-    select(-starts_with("aux_"), -c(manufacturer, stud_resids, stud_outlier)) %>%
+    select(-starts_with("aux_"), -manufacturer) %>%
+    add_column(Moutlier = df_outliers$moutlier) %>%
+    mutate(Moutlier = cell_spec(Moutlier, bold = Moutlier)) %>%
     slice(ids_combined) %>%
     arrange(rowid) %>%
     kable(
         caption = "Influential data",
         booktabs = TRUE,
-        digits = 2
+        digits = 2,
+        escape = FALSE
     ) %>%
     kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
 ```
+
+In \cref{tab:q17_outliers} we show all the influential data labelled with either
+`DFFIT` or `DFBETAS`. The column `Moutlier` shows the variables which where
+labelled as multivariate outliers _a priori_.
 
 
 <!-- 18. --> \pagebreak
 ## Given a 5-year-old car, the rest of numerical variables on the mean and factors on the reference level, what would be the expected price at 95% confidence interval?
 
-```{r q8_car_data}
+We use the model from previous sections but removing all the influential data
+points found in the previous section.
+
+```{r q18_model}
+dd <- df %>%
+    select(-year, -starts_with("aux_")) %>%
+    slice(-ids_combined)
+
+best_model_noinf <- lm(log(price) ~ ., data = dd)
+```
+
+```{r q18_car_data}
 df_mean <- df %>%
-    summarise(across(c(where(is.numeric), -stud_resids, -age), mean))
+    summarise(across(c(where(is.numeric), -age), mean))
 
 car_5y <- df %>%
     slice(1) %>%
     select(where(is.factor), -year, -starts_with("aux_")) %>%
     bind_cols(df_mean) %>%
     add_column(age = 5)
+```
 
+```{r q18_car_data_table}
 car_5y %>%
     select(-price) %>%
     kable(
@@ -729,15 +800,17 @@ car_5y %>%
         digits = 2
     ) %>%
     kable_styling(latex_options = c("HOLD_position", "scale_down"), full_width = FALSE)
+```
 
-(predicted <- best_model %>%
+```{r q18_car_data_pred}
+(predicted <- best_model_noinf %>%
     predict(newdata = car_5y, interval = "confidence", level = 0.95) %>%
     exp() %>%
     round(2) %>%
     as.data.frame())
 ```
 
-For the data shown in \cref{tab:q8_car_data} we obtain an expected `price`
+For the data shown in \cref{tab:q18_car_data_table} we obtain an expected `price`
 of `r glue("{predicted$fit}")` with a 95% confidence interval
 of `r glue("({predicted$lwr}, {predicted$upr})")`.
 
