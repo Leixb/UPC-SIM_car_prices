@@ -14,18 +14,23 @@
         R-packages = with pkgs.rPackages; [
           FSelector
           FactoMineR
+          MASS
           car
           chemometrics
           corrplot
           cowplot
           devtools
+          doParallel
           factoextra
           ggfortify
+          ggrepel
           kableExtra
           knitr
           lmtest
           maps
           mice
+          missForest
+          mvoutlier
           papeR
           tidyverse
           xtable
